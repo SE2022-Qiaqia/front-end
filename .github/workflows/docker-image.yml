@@ -20,7 +20,10 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:${{ steps.commit.outputs.short }} --tag ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:nightly
     - name: Docker login
-      run: docker login --username=${{ secrets.DOCKER_REGISTRY_USERNAME }} --password=${{ secrets.DOCKER_REGISTRY_PASSWORD }} ${{ secrets.DOCKER_REGISTRY_URL }}
+      env:
+        DOCKER_REGISTRY_USERNAME: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+        DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      run: docker login --username=$DOCKER_REGISTRY_USERNAME --password=$DOCKER_REGISTRY_PASSWORD ${{ secrets.DOCKER_REGISTRY_URL }}
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:${{ steps.commit.outputs.short }} ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:nightly
     
