@@ -1,0 +1,30 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - uses: actions/checkout@v2
+    - id: commit
+      uses: pr-mpt/actions-commit-hash@v1
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:${{ steps.commit.outputs.short }} --tag ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:nightly
+    - name: Docker login
+      env:
+        DOCKER_REGISTRY_USERNAME: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+        DOCKER_REGISTRY_PASSWORD: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+      run: docker login --username=$DOCKER_REGISTRY_USERNAME --password=$DOCKER_REGISTRY_PASSWORD ${{ secrets.DOCKER_REGISTRY_URL }}
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:${{ steps.commit.outputs.short }} && docker push ${{ secrets.DOCKER_IMAGE_NAME_FRONTEND }}:nightly
+    
+  
