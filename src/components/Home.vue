@@ -14,7 +14,7 @@ const student = ref<User>({
   },
   role: 'student',
 });
-const roles = {
+const roles: { [key: string]: string } = {
   'student': '学生',
   'teacher': '教师'
 };
