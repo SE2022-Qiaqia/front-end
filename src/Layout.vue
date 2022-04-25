@@ -4,6 +4,9 @@ import {
   NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption
 } from 'naive-ui';
 import logo from './assets/logo.jpg';
+import { useStore } from './store';
+
+const store = useStore();
 
 const headerContentHeight = '70px';
 const headerPadding = '20px';
@@ -33,7 +36,7 @@ const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
   {
     label: () => (<a href="https://se2022-qiaqia.github.io/docs/">Docs</a>),
     key: "docs"
-  }
+  },
 ];
 </script>
 

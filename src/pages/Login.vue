@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, FormItemRule, NButton } from 'naive-ui';
+import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, FormItemRule, NButton, useMessage } from 'naive-ui';
 import { ref } from 'vue';
+import { User } from '../models';
+import { injectStore } from '../store';
+
+const store = injectStore();
+const message = useMessage();
 
 const form = ref({
   username: '20191122333',
@@ -42,7 +47,17 @@ const formRules: FormRules = {
       }
     }
   ]
-}; 
+};
+
+async function login() {
+  try {
+    const token = (await store.dispatch('login', form.value)) as string;
+    const userInfo = (await store.dispatch('fetchUserInfo')) as User;
+    message.info(`登录成功，欢迎您：${userInfo.name}！`)
+  } catch (error) {
+    message.error(`登录失败！${(error as Error).message}`);
+  }
+}
 </script>
 
 <template>
@@ -61,7 +76,7 @@ const formRules: FormRules = {
               <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
             </n-form-item>
             <div style="display: flex; justify-content: flex-end">
-              <n-button round type="primary">
+              <n-button round type="primary" @click="login">
                 登录
               </n-button>
             </div>
