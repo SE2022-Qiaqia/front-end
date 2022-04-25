@@ -1,15 +1,31 @@
 import { inject, InjectionKey } from "vue";
-import { createStore, Store, useStore as useStoreBase } from "vuex";
+import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
 import api, { LoginCredit } from '../api';
 import { User } from "../models";
-import { FinalState } from "./types";
+import { FinalState, LoginState, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
 
-export const store = createStore<FinalState>({
+const loginStateModule: Module<LoginState, RootState> = {
+  namespaced: true,
+  state: {
+    loginReason: ''
+  },
+  mutations: {
+    setLoginReason(state, reason: string) {
+      state.loginReason = reason;
+    }
+  }
+};
+
+export const store: Store<FinalState> = createStore<RootState>({
+  strict: process.env.NODE_ENV !== 'production',
   state: {
     loginToken: localStorage.getItem("loginToken") || '',
     user: JSON.parse(localStorage.getItem("user") || "{}"),
+  },
+  modules: {
+    login: loginStateModule
   },
   mutations: {
     saveUserInfo(state, user: User) {
@@ -23,6 +39,7 @@ export const store = createStore<FinalState>({
   },
   actions: {
     async login({ commit }, LoginCredit: LoginCredit) {
+      commit('login/setLoginReason', '');
       try {
         const token = await api.login(LoginCredit);
         commit('saveLoginToken', token);
@@ -36,18 +53,18 @@ export const store = createStore<FinalState>({
     async fetchUserInfo({ commit, state }) {
       if (state.loginToken) {
         try {
-          console.log(state.loginToken)
           const user = await api.fetchUserInfo(state.loginToken);
           commit("saveUserInfo", user);
           return user;
         } catch (error) {
+          commit('saveLoginToken', '');
           commit("saveUserInfo", {});
           throw error;
         }
       }
     },
   }
-});
+}) as Store<FinalState>;
 
 export function useStore() { return useStoreBase(key); }
 export function injectStore(): Store<FinalState> { return inject(key)!; }

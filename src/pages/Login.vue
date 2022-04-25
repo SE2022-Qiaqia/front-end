@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, FormItemRule, NButton, useMessage } from 'naive-ui';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { User } from '../models';
 import { injectStore } from '../store';
 
 const store = injectStore();
 const message = useMessage();
+const route = useRoute();
+const router = useRouter();
 
 const form = ref({
   username: '20191122333',
@@ -53,11 +56,18 @@ async function login() {
   try {
     const token = (await store.dispatch('login', form.value)) as string;
     const userInfo = (await store.dispatch('fetchUserInfo')) as User;
+    router.push({ path: route.query.redirect as string || '/' });
     message.info(`登录成功，欢迎您：${userInfo.name}！`)
   } catch (error) {
     message.error(`登录失败！${(error as Error).message}`);
   }
 }
+
+onMounted(() => {
+  if (store.state.login.loginReason) {
+    message.error(store.state.login.loginReason);
+  }
+});
 </script>
 
 <template>

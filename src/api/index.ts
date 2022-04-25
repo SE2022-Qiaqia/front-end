@@ -11,14 +11,14 @@ export async function login(login: LoginCredit) {
   if (Math.random() > 0.5 || navigator.webdriver) {
     return 'image-this-is-a-token';
   } else {
-    throw new Error('登录失败');
+    throw new Error('用户名或密码错误(debug)');
   }
 }
 
 export async function fetchUserInfo(token: string): Promise<User> {
   // TODO
   await wait(100);
-  if (Math.random() > 0.5 || navigator.webdriver) {
+  if (token && (Math.random() > 0.2 || navigator.webdriver)) {
     return {
       id: 20191122333,
       name: 'SalHe',
@@ -30,7 +30,7 @@ export async function fetchUserInfo(token: string): Promise<User> {
       role: Role.student,
     };
   } else {
-    throw new Error('Token已失效');
+    throw new Error('Token已失效(debug)');
   }
 }
 

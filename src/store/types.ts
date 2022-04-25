@@ -5,4 +5,10 @@ export interface RootState {
   user?: User;
 }
 
-export interface FinalState extends RootState { }
+export interface LoginState {
+  loginReason: string;
+}
+
+export interface FinalState extends RootState {
+  login: LoginState;
+}
