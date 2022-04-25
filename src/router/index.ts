@@ -16,7 +16,11 @@ export const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.meta.needAuth) {
     if (store.state.loginToken) {
-      next();
+      if (to.path === loginPath) {
+        next('/');
+      } else {
+        next();
+      }
 
       store.dispatch('fetchUserInfo')
         .catch(() => {

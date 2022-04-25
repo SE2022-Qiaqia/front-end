@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, FormItemRule, NButton, useMessage } from 'naive-ui';
+import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, NSpin, NButton, useMessage } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { User } from '../models';
@@ -15,6 +15,7 @@ const form = ref({
   password: '',
   passwordRepeat: ''
 });
+const submitting = ref(false);
 
 const formRules: FormRules = {
   username: {
@@ -53,6 +54,7 @@ const formRules: FormRules = {
 };
 
 async function login() {
+  submitting.value = true;
   try {
     const token = (await store.dispatch('login', form.value)) as string;
     const userInfo = (await store.dispatch('fetchUserInfo')) as User;
@@ -61,6 +63,7 @@ async function login() {
   } catch (error) {
     message.error(`登录失败！${(error as Error).message}`);
   }
+  submitting.value = false;
 }
 
 onMounted(() => {
@@ -72,48 +75,52 @@ onMounted(() => {
 
 <template>
   <n-space vertical align="center">
-    <n-card title="加入选课系统" size="huge">
+    <n-spin :show="submitting">
 
-      <n-tabs type="line" animated>
+      <n-card title="加入选课系统" size="huge">
 
-        <n-tab-pane name="login" tab="登录">
-          <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
-            require-mark-placement="right-hanging">
-            <n-form-item label="用户名:" path="username">
-              <n-input v-model:value="form.username" placeholder="请输入学号" clearable />
-            </n-form-item>
-            <n-form-item label="密码:" path="password">
-              <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
-            </n-form-item>
-            <div style="display: flex; justify-content: flex-end">
-              <n-button round type="primary" @click="login">
-                登录
-              </n-button>
-            </div>
-          </n-form>
-        </n-tab-pane>
+        <n-tabs type="line" animated>
 
-        <n-tab-pane name="register" tab="注册">
-          <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
-            require-mark-placement="right-hanging">
-            <n-form-item label="用户名:" path="username">
-              <n-input v-model:value="form.username" placeholder="请输入学号" clearable />
-            </n-form-item>
-            <n-form-item label="密码:" path="password">
-              <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
-            </n-form-item>
-            <n-form-item label="确认密码:" path="passwordRepeat">
-              <n-input v-model:value="form.passwordRepeat" type="password" placeholder="请再次确认密码" />
-            </n-form-item>
-            <div style="display: flex; justify-content: flex-end">
-              <n-button round type="primary" ghost>
-                注册
-              </n-button>
-            </div>
-          </n-form>
-        </n-tab-pane>
+          <n-tab-pane name="login" tab="登录">
+            <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
+              require-mark-placement="right-hanging">
+              <n-form-item label="用户名:" path="username">
+                <n-input v-model:value="form.username" placeholder="请输入学号" clearable />
+              </n-form-item>
+              <n-form-item label="密码:" path="password">
+                <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
+              </n-form-item>
+              <div style="display: flex; justify-content: flex-end">
+                <n-button round type="primary" @click="login">
+                  登录
+                </n-button>
+              </div>
+            </n-form>
+          </n-tab-pane>
 
-      </n-tabs>
-    </n-card>
+          <n-tab-pane name="register" tab="注册">
+            <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
+              require-mark-placement="right-hanging">
+              <n-form-item label="用户名:" path="username">
+                <n-input v-model:value="form.username" placeholder="请输入学号" clearable />
+              </n-form-item>
+              <n-form-item label="密码:" path="password">
+                <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
+              </n-form-item>
+              <n-form-item label="确认密码:" path="passwordRepeat">
+                <n-input v-model:value="form.passwordRepeat" type="password" placeholder="请再次确认密码" />
+              </n-form-item>
+              <div style="display: flex; justify-content: flex-end">
+                <n-button round type="primary" ghost>
+                  注册
+                </n-button>
+              </div>
+            </n-form>
+          </n-tab-pane>
+
+        </n-tabs>
+      </n-card>
+
+    </n-spin>
   </n-space>
 </template>
