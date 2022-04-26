@@ -1,12 +1,9 @@
 <script setup lang="tsx">
 import {
-  NLayout, NLayoutHeader, NLayoutContent, NLayoutFooter,
+  NLayout, NLayoutHeader, NLayoutContent,
   NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption
 } from 'naive-ui';
 import logo from './assets/logo.jpg';
-import { useStore } from './store';
-
-const store = useStore();
 
 const headerContentHeight = '70px';
 const headerPadding = '20px';

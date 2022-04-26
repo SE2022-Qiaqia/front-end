@@ -1,5 +1,5 @@
 import { createWebHistory, createRouter } from "vue-router";
-import HelloWorld from "../pages/Home.vue";
+import Home from "../pages/Home.vue";
 import Login from "../pages/Login.vue";
 import store from '../store';
 
@@ -8,12 +8,26 @@ const loginPath = "/login";
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: HelloWorld, meta: { needAuth: true } },
-    { path: loginPath, component: Login },
+    {
+      path: '/',
+      component: Home,
+      meta: {
+        title: '首页',
+        needAuth: true
+      }
+    },
+    {
+      path: loginPath,
+      component: Login,
+      meta: {
+        title: '登录/注册'
+      }
+    },
   ]
 });
 
 router.beforeEach((to, from, next) => {
+  document.title = `Qiaqia选课系统 | ${to.meta.title}`;
   if (to.meta.needAuth) {
     if (store.state.loginToken) {
       if (to.path === loginPath) {
