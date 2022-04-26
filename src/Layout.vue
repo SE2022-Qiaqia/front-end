@@ -1,6 +1,6 @@
 <script setup lang="tsx">
 import {
-  NLayout, NLayoutHeader, NLayoutContent, NLayoutFooter,
+  NLayout, NLayoutHeader, NLayoutContent,
   NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption
 } from 'naive-ui';
 import logo from './assets/logo.jpg';
@@ -33,7 +33,7 @@ const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
   {
     label: () => (<a href="https://se2022-qiaqia.github.io/docs/">Docs</a>),
     key: "docs"
-  }
+  },
 ];
 </script>
 
