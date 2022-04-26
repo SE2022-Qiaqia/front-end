@@ -51,6 +51,7 @@ jobs:
           # 部署到 gh-pages 分支
           target_branch: gh-pages
           build_dir: dist
+          repo: SE2022-Qiaqia/se2022-qiaqia.github.io
         env:
           # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
