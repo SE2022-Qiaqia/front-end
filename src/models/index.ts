@@ -14,7 +14,7 @@ export enum Day {
   Sat = 'Sat'
 }
 
-export interface School {
+export interface College {
   id: number;
   name: string;
 }
@@ -23,7 +23,7 @@ export interface User {
   id: number;
   name: string;
   entranceYear: number;
-  school: School;
+  college: College;
   role: Role;
   avatar?: string;
 }

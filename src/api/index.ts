@@ -1,4 +1,5 @@
-import { User, Role } from "../models";
+import { User } from "../models";
+import { userSalHe } from "../models/mock";
 
 export interface LoginCredit {
   username: string;
@@ -19,16 +20,7 @@ export async function fetchUserInfo(token: string): Promise<User> {
   // TODO
   await wait(100);
   if (token && (Math.random() > 0.2 || navigator.webdriver)) {
-    return {
-      id: 20191122333,
-      name: 'SalHe',
-      entranceYear: 2019,
-      school: {
-        id: 0,
-        name: 'School of Computer'
-      },
-      role: Role.student,
-    };
+    return userSalHe;
   } else {
     throw new Error('Token已失效(debug)');
   }

@@ -3,18 +3,11 @@ import { ref } from 'vue';
 import { NGrid, NGridItem } from 'naive-ui';
 import UserBrief from '../components/UserBrief.vue';
 import CourseSchedule from '../components/CourseSchedule.vue';
-import { User, Role } from '../models';
+import { injectStore } from '../store';
 
-const student = ref<User>({
-  id: 20191122333,
-  name: 'SalHe',
-  entranceYear: 2019,
-  school: {
-    id: 0,
-    name: 'School of Computer'
-  },
-  role: Role.student,
-});
+const store = injectStore();
+
+const student = store.state.user!;
 </script>
 
 <template>

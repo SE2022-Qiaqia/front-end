@@ -1,6 +1,4 @@
 import { createWebHistory, createRouter } from "vue-router";
-import Home from "../pages/Home.vue";
-import Login from "../pages/Login.vue";
 import store from '../store';
 
 const loginPath = "/login";
@@ -10,7 +8,7 @@ export const router = createRouter({
   routes: [
     {
       path: '/',
-      component: Home,
+      component: () => import("../pages/Home.vue"),
       meta: {
         title: '首页',
         needAuth: true
@@ -18,7 +16,7 @@ export const router = createRouter({
     },
     {
       path: loginPath,
-      component: Login,
+      component: () => import('../pages/Login.vue'),
       meta: {
         title: '登录/注册'
       }

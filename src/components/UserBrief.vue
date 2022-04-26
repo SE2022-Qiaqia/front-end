@@ -26,7 +26,7 @@ const props = defineProps<{ user: User }>();
           <span>{{ user.entranceYear }}</span>
           <br />
           <span>学院：</span>
-          <span>{{ user.school.name }}</span>
+          <span>{{ user.college.name }}</span>
           <br />
         </p>
       </template>

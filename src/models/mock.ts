@@ -1,4 +1,17 @@
-import { Course, Role } from ".";
+import { College, Course, Role, User } from ".";
+
+export const collegeComputer: College = {
+  id: 0,
+  name: '计算机学院',
+};
+
+export const userSalHe: User = {
+  id: 20191122333,
+  name: 'SalHe',
+  entranceYear: 2019,
+  college: collegeComputer,
+  role: Role.student,
+};
 
 export const courses: Course[] = [
   {
@@ -9,10 +22,7 @@ export const courses: Course[] = [
       id: 19800000101,
       name: '张计组',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼310',
@@ -28,10 +38,7 @@ export const courses: Course[] = [
       id: 19800000102,
       name: '李计网',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼250',
@@ -47,10 +54,7 @@ export const courses: Course[] = [
       id: 19800000103,
       name: '王数据',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼520',
@@ -68,10 +72,7 @@ export const courses: Course[] = [
       id: 19800000104,
       name: '赵操作',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼110',
@@ -87,10 +88,7 @@ export const courses: Course[] = [
       id: 19800000104,
       name: '刘数据',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼310',
@@ -108,10 +106,7 @@ export const courses: Course[] = [
       id: 19800000106,
       name: '喻离散',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼410',
@@ -127,10 +122,7 @@ export const courses: Course[] = [
       id: 19800000107,
       name: '胡软件',
       entranceYear: 1980,
-      school: {
-        id: 0,
-        name: '计算机学院',
-      },
+      college: collegeComputer,
       role: Role.teacher,
     },
     location: '青楼510',
