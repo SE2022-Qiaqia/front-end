@@ -21,6 +21,14 @@ export const router = createRouter({
         title: '登录/注册'
       }
     },
+    {
+      path: '/courses',
+      component: () => import('../pages/Courses.vue'),
+      meta: {
+        title: '选课',
+        needAuth: true
+      }
+    }
   ]
 });
 

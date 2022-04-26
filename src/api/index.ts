@@ -1,5 +1,5 @@
-import { User } from "../models";
-import { userSalHe } from "../models/mock";
+import { College, User } from "../models";
+import { colleges, userSalHe } from "../models/mock";
 
 export interface LoginCredit {
   username: string;
@@ -26,6 +26,12 @@ export async function fetchUserInfo(token: string): Promise<User> {
   }
 }
 
+export async function fetchColleges(token: string): Promise<College[]> {
+  // TODO
+  await wait(100);
+  return colleges;
+}
+
 
 function wait(ms: number) {
   return new Promise(resolve => {
@@ -33,4 +39,4 @@ function wait(ms: number) {
   });
 }
 
-export default { login, fetchUserInfo };
+export default { login, fetchUserInfo, fetchColleges };

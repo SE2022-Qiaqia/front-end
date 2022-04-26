@@ -5,6 +5,13 @@ export const collegeComputer: College = {
   name: '计算机学院',
 };
 
+export const collegeMath: College = {
+  id: 1,
+  name: '数学学院',
+};
+
+export const colleges = [collegeComputer, collegeMath];
+
 export const userSalHe: User = {
   id: 20191122333,
   name: 'SalHe',
