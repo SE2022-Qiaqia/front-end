@@ -41,7 +41,7 @@ jobs:
 
       # 运行构建脚本
       - name: Build
-        run: yarn build && cd dist && cp index.html 404.html
+        run: yarn build --base /${{ github.event.repository.name }} && cd dist && cp index.html 404.html
 
       # 查看 workflow 的文档来获取更多信息
       # @see https://github.com/crazy-max/ghaction-github-pages
@@ -51,7 +51,6 @@ jobs:
           # 部署到 gh-pages 分支
           target_branch: gh-pages
           build_dir: dist
-          repo: SE2022-Qiaqia/se2022-qiaqia.github.io
         env:
           # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
