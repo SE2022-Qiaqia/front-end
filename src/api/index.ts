@@ -9,7 +9,7 @@ export interface LoginCredit {
 export async function login(login: LoginCredit) {
   // TODO
   await wait(100);
-  if (Math.random() > 0.5 || navigator.webdriver) {
+  if (login.username.length >= 11 && login.password.length >= 6) {
     return 'image-this-is-a-token';
   } else {
     throw new Error('用户名或密码错误(debug)');

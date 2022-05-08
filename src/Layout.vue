@@ -1,9 +1,13 @@
 <script setup lang="tsx">
 import {
   NLayout, NLayoutHeader, NLayoutContent,
-  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption
+  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage
 } from 'naive-ui';
 import logo from './assets/logo.jpg';
+
+const message = useMessage(); // TODO 功能完全实现后记得去除
+message.warning('DEBUG: 当前未使用实际实现的API，仅为内部实现的用于测试的"API"。', { duration: 5000 });
+
 
 const headerContentHeight = '70px';
 const headerPadding = '20px';
