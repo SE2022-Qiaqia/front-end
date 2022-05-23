@@ -1,4 +1,4 @@
-import { User } from "../models";
+import { User } from "../api/resp";
 
 export interface RootState {
   loginToken: string;

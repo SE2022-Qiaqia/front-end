@@ -5,12 +5,13 @@ import { darkTheme, useOsTheme, NConfigProvider, NMessageProvider } from "naive-
 import { computed, provide } from "vue";
 import { useStore } from "vuex";
 import Layout from "./Layout.vue";
-import { key } from "./store";
+import { key as storeKey } from "./store";
 
 const osTheme = useOsTheme();
 const theme = computed(() => osTheme.value === 'dark' ? darkTheme : null);
-const store = useStore(key);
-provide(key, store);
+const store = useStore(storeKey);
+
+provide(storeKey, store);
 
 </script>
 

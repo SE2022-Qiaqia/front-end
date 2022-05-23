@@ -2,7 +2,7 @@
 import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, NSpin, NButton, useMessage } from 'naive-ui';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { User } from '../models';
+import { User } from '../api/resp';
 import { injectStore } from '../store';
 
 const store = injectStore();
@@ -59,7 +59,7 @@ async function login() {
     const token = (await store.dispatch('login', form.value)) as string;
     const userInfo = (await store.dispatch('fetchUserInfo')) as User;
     router.push({ path: route.query.redirect as string || '/' });
-    message.info(`登录成功，欢迎您：${userInfo.name}！`)
+    message.info(`登录成功，欢迎您：${userInfo.realName}！`)
   } catch (error) {
     message.error(`登录失败！${(error as Error).message}`);
   }

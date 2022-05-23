@@ -1,7 +1,8 @@
 import { inject, InjectionKey } from "vue";
 import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
-import api, { LoginCredit } from '../api';
-import { User } from "../models";
+import { api } from '../api';
+import { LoginCredit } from '../api/req';
+import { User } from "../api/resp";
 import { FinalState, LoginState, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
@@ -53,7 +54,8 @@ export const store: Store<FinalState> = createStore<RootState>({
     async fetchUserInfo({ commit, state }) {
       if (state.loginToken) {
         try {
-          const user = await api.fetchUserInfo(state.loginToken);
+          api.token = state.loginToken;
+          const user = await api.fetchUserInfo();
           commit("saveUserInfo", user);
           return user;
         } catch (error) {

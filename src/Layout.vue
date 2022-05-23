@@ -5,8 +5,8 @@ import {
 } from 'naive-ui';
 import logo from './assets/logo.jpg';
 
-const message = useMessage(); // TODO 功能完全实现后记得去除
-message.warning('DEBUG: 当前未使用实际实现的API，仅为内部实现的用于测试的"API"。', { duration: 5000 });
+// const message = useMessage(); // TODO 功能完全实现后记得去除
+// message.warning('DEBUG: 当前未使用实际实现的API，仅为内部实现的用于测试的"API"。', { duration: 5000 });
 
 
 const headerContentHeight = '70px';

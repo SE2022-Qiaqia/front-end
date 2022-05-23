@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { NThing, NAvatar, NCard } from 'naive-ui';
-import { User } from '../models';
+import { User } from '../api/resp';
 import logo from '../assets/logo.jpg';
+import { Role } from '../api/resp';
 
-const roles: { [key: string]: string } = {
-  'student': '学生',
-  'teacher': '教师'
+const roles: { [key: number]: string } = {
+  [Role.Student]: '学生',
+  [Role.Teacher]: '教师',
+  [Role.Admin]: '管理员'
 };
 
 const props = defineProps<{ user: User }>();
@@ -13,10 +15,10 @@ const props = defineProps<{ user: User }>();
 
 <template>
   <n-card>
-    <n-thing style="width: 400px;" :title="user.name" :description="roles[user.role.toLowerCase()]">
-      <template #avatar>
+    <n-thing style="width: 400px;" :title="user.realName" :description="roles[user.role]">
+      <!-- <template #avatar>
         <n-avatar :src="user.avatar || logo" size="large" />
-      </template>
+      </template> -->
       <template #default>
         <p>
           <span>学号：</span>

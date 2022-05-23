@@ -1,42 +1,50 @@
-import { College, User } from "../models";
-import { colleges, userSalHe } from "../models/mock";
+import axios, { AxiosInstance } from 'axios';
+import { ApiResponse, ErrCode, User, College, Semester } from "./resp";
+import { LoginCredit } from "./req";
 
-export interface LoginCredit {
-  username: string;
-  password: string;
-}
+export class Api {
 
-export async function login(login: LoginCredit) {
-  // TODO
-  await wait(100);
-  if (login.username.length >= 11 && login.password.length >= 6) {
-    return 'image-this-is-a-token';
-  } else {
-    throw new Error('用户名或密码错误(debug)');
+  public token: string = '';
+  protected _axios: AxiosInstance
+
+  constructor(baseURL: string = '') {
+    this._axios = axios.create({
+      baseURL,
+      withCredentials: false
+    });
+    this._axios.interceptors.request.use((config) => {
+      config.headers!.Authorization = `Bearer ${this.token}`;
+      return config;
+    });
+    this._axios.interceptors.response.use(response => {
+      if (response.data.code != ErrCode.Ok) {
+        throw new Error(response.data.msg);
+      }
+      return response;
+    })
   }
-}
 
-export async function fetchUserInfo(token: string): Promise<User> {
-  // TODO
-  await wait(100);
-  if (token && (Math.random() > 0.2 || navigator.webdriver)) {
-    return userSalHe;
-  } else {
-    throw new Error('Token已失效(debug)');
+  public async login(login: LoginCredit) {
+    const response = await this._axios.post<ApiResponse>('/login', login);
+    this.token = response.data.data!;
+    return this.token;
   }
+
+  public async fetchUserInfo(): Promise<User> {
+    const response = await this._axios.get<ApiResponse<User>>('/user');
+    return response.data.data!;
+  }
+
+  public async fetchColleges(name: string = ""): Promise<College[]> {
+    const response = await this._axios.post<ApiResponse<College[]>>('/college/list', { name });
+    return response.data.data || [];
+  }
+
+  public async fetchSemesters(): Promise<Semester[]> {
+    const response = await this._axios.get<ApiResponse<Semester[]>>('/semester/');
+    return response.data.data || [];
+  }
+
 }
 
-export async function fetchColleges(token: string): Promise<College[]> {
-  // TODO
-  await wait(100);
-  return colleges;
-}
-
-
-function wait(ms: number) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-}
-
-export default { login, fetchUserInfo, fetchColleges };
+export const api = new Api('http://localhost:8080/api/v1');

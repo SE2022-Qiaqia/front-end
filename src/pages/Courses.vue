@@ -12,7 +12,9 @@
           <n-form-item label="教师: ">
             <n-input v-model:value="queryModel.teacherName" placeholder="请输入教师名字" />
           </n-form-item>
-          <n-form-item label="学期: ">TODO </n-form-item>
+          <n-form-item label="学期: ">
+            <n-select placeholder="请选择学期" :options="semestersOptions" />
+          </n-form-item>
           <n-form-item label="余量: ">
             <n-checkbox v-model:checked="queryModel.isQuotaLeft" label="仅看有余量" />
           </n-form-item>
@@ -25,8 +27,8 @@
 <script setup lang="ts">
 import { NSpace, NGrid, NGridItem, NForm, NFormItem, NInput, NSelect, SelectOption, NCheckbox } from 'naive-ui';
 import { onMounted, ref, watch } from 'vue';
-import api from '../api';
-import { College } from '../models';
+import { api } from '../api';
+import { College, Semester } from '../api/resp';
 import { injectStore } from '../store';
 
 const store = injectStore();
@@ -36,6 +38,7 @@ const queryModel = ref({
   teacherName: '',
   isQuotaLeft: true
 });
+
 const colleges = ref<College[]>([]);
 const collegesOptions = ref<SelectOption[]>();
 watch(() => colleges.value, () => {
@@ -45,8 +48,19 @@ watch(() => colleges.value, () => {
   }));
 });
 
+const semesters = ref<Semester[]>([]);
+const semestersOptions = ref<SelectOption[]>();
+watch(() => semesters.value, () => {
+  semestersOptions.value = semesters.value.map(s => ({
+    value: s.id,
+    label: `${s.year}级-第${s.term}学期`
+  }));
+});
+
 onMounted(() => {
-  api.fetchColleges(store.state.loginToken)
+  api.fetchColleges()
     .then(res => colleges.value = res);
+  api.fetchSemesters()
+    .then(res => semesters.value = res);
 });
 </script>
