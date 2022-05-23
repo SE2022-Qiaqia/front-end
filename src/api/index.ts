@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { ApiResponse, ErrCode, User, College, Semester } from "./resp";
+import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData } from "./resp";
 import { LoginCredit } from "./req";
 
 export class Api {
@@ -43,6 +43,16 @@ export class Api {
   public async fetchSemesters(): Promise<Semester[]> {
     const response = await this._axios.get<ApiResponse<Semester[]>>('/semester/');
     return response.data.data || [];
+  }
+
+  public async fetchCurrentSemester(): Promise<Semester> {
+    const response = await this._axios.get<ApiResponse<Semester>>('/semester/curr');
+    return response.data.data!;
+  }
+
+  public async queryCourses(data: any): Promise<PageData<CourseCommonWithSpecifics>> {
+    const response = await this._axios.post<ApiPageResponse<CourseCommonWithSpecifics>>('/course/list', data);
+    return response.data.data!;
   }
 
 }

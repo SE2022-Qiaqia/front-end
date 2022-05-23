@@ -1,3 +1,5 @@
+export * from './course';
+
 export interface LoginCredit {
   username: string;
   password: string;
@@ -26,4 +28,9 @@ export interface QueryCollegesService {
 
 export interface IdReq {
   id: number;
+}
+
+export interface Page {
+  page: number;
+  size: number;
 }

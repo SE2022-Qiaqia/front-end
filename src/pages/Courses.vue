@@ -1,43 +1,117 @@
 <template>
-  <n-grid :cols="12">
+  <n-grid :cols="12" style="margin-bottom: 20px;">
+
     <n-grid-item :offset="1" :span="10">
-      <n-space vertical align="stretch">
-        <n-form :model="queryModel" label-placement="left" label-width="auto" require-mark-placement="right-hanging">
-          <n-form-item label="课程: ">
-            <n-input v-model:value="queryModel.courseName" placeholder="请输入课程名" />
-          </n-form-item>
-          <n-form-item label="学院: ">
-            <n-select v-model:value="queryModel.colleges" placeholder="请选择学院" :options="collegesOptions" multiple />
-          </n-form-item>
-          <n-form-item label="教师: ">
-            <n-input v-model:value="queryModel.teacherName" placeholder="请输入教师名字" />
-          </n-form-item>
-          <n-form-item label="学期: ">
-            <n-select placeholder="请选择学期" :options="semestersOptions" />
-          </n-form-item>
-          <n-form-item label="余量: ">
-            <n-checkbox v-model:checked="queryModel.isQuotaLeft" label="仅看有余量" />
-          </n-form-item>
-        </n-form>
-      </n-space>
+
+      <n-spin :show="querying">
+
+        <n-space vertical align="stretch" size="large">
+          <n-form :model="queryModel" label-placement="left" label-width="auto" require-mark-placement="right-hanging">
+            <n-form-item label="课程: ">
+              <n-input v-model:value="queryModel.name" placeholder="请输入课程名" />
+            </n-form-item>
+            <n-form-item label="学院: ">
+              <n-select v-model:value="queryModel.collegesId" placeholder="请选择学院" :options="collegesOptions" multiple />
+            </n-form-item>
+            <n-form-item label="教师: ">
+              <n-input v-model:value="queryModel.teacherName" placeholder="请输入教师名字" />
+            </n-form-item>
+            <n-form-item label="学期: ">
+              <n-select v-model:value="queryModel.semester" placeholder="请选择学期" :options="semestersOptions" />
+            </n-form-item>
+            <n-form-item label="余量: ">
+              <n-checkbox v-model:checked="queryModel.onlyLeftQuota" label="仅看有余量" />
+            </n-form-item>
+            <div style="display: flex; justify-content: flex-end">
+              <n-button round type="primary" @click="queryCourses(true)">
+                查询
+              </n-button>
+            </div>
+          </n-form>
+
+          <n-collapse>
+            <n-collapse-item v-for="courseCommon in courses" key="id">
+              <template #header>
+                <n-text :depth="courseCommon.courseSpecifics.length > 0 ? undefined : '3'">
+                  {{ courseCommon.name }} (课程号：{{ courseCommon.id }})
+                </n-text>
+              </template>
+              <template #header-extra>
+                <n-text :depth="courseCommon.courseSpecifics.length > 0 ? undefined : '3'">
+                  {{ courseCommon.college.name }} {{ courseCommon.credits.toFixed(1) }} 分
+                </n-text>
+              </template>
+
+              <template v-if="courseCommon.courseSpecifics.length <= 0">
+                <n-empty description="在该筛选条件下没有找到符合的课头哦~">
+                </n-empty>
+              </template>
+              <template v-else>
+                <n-table :bordered="true">
+                  <thead>
+                    <tr>
+                      <th>课程名</th>
+                      <th>授课老师</th>
+                      <th>授课地点</th>
+                      <th>授课时间</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="specific in courseCommon.courseSpecifics" key="id">
+                      <td>{{ courseCommon.name }}</td>
+                      <td>{{ specific.teacher.realName }}({{ specific.teacher.college.name }})</td>
+                      <td>{{ specific.location }}</td>
+                      <td>
+                        <p v-for="schedule in specific.courseSchedules">
+                          <template v-if="schedule.startWeekId">
+                            第{{ schedule.startWeekId }}~{{ schedule.endWeekId }}周，
+                          </template>
+                          {{ dayName(schedule.dayOfWeek) }}
+                          <template v-if="schedule.startHoursId">
+                            ，第{{ schedule.startHoursId }}~{{ schedule.endHoursId }}节
+                          </template>
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </n-table>
+              </template>
+
+            </n-collapse-item>
+          </n-collapse>
+
+        </n-space>
+
+      </n-spin>
+
     </n-grid-item>
   </n-grid>
 </template>
 
 <script setup lang="ts">
-import { NSpace, NGrid, NGridItem, NForm, NFormItem, NInput, NSelect, SelectOption, NCheckbox } from 'naive-ui';
-import { onMounted, ref, watch } from 'vue';
+import {
+  NSpace, NGrid, NGridItem, NForm, NFormItem,
+  NInput, NSelect, SelectOption, NCheckbox, NButton, NSpin,
+  NCollapse, NCollapseItem, NEmpty, NTable, NText
+} from 'naive-ui';
+import { onMounted, ref, watch, watchEffect } from 'vue';
 import { api } from '../api';
-import { College, Semester } from '../api/resp';
-import { injectStore } from '../store';
+import { College, CourseCommonWithSpecifics, Semester, dayName } from '../api/resp';
+import { QueryCoursesRequest } from '../api/req';
+// import { injectStore } from '../store';
 
-const store = injectStore();
-const queryModel = ref({
-  courseName: '',
-  colleges: [],
+// const store = injectStore();
+const queryModel = ref<QueryCoursesRequest>({
+  name: '',
+  collegesId: [],
   teacherName: '',
-  isQuotaLeft: true
+  onlyLeftQuota: true,
+  semester: 0,
+  page: 1,
+  size: 10
 });
+
+const querying = ref(false);
 
 const colleges = ref<College[]>([]);
 const collegesOptions = ref<SelectOption[]>();
@@ -49,11 +123,12 @@ watch(() => colleges.value, () => {
 });
 
 const semesters = ref<Semester[]>([]);
+const currentSemesterId = ref(0);
 const semestersOptions = ref<SelectOption[]>();
-watch(() => semesters.value, () => {
+watchEffect(() => {
   semestersOptions.value = semesters.value.map(s => ({
     value: s.id,
-    label: `${s.year}级-第${s.term}学期`
+    label: `${s.year}级-第${s.term}学期${s.id === currentSemesterId.value ? '(本学期)' : ''}`
   }));
 });
 
@@ -62,5 +137,26 @@ onMounted(() => {
     .then(res => colleges.value = res);
   api.fetchSemesters()
     .then(res => semesters.value = res);
+  api.fetchCurrentSemester()
+    .then(res => {
+      currentSemesterId.value = res.id;
+      queryModel.value.semester = res.id;
+    });
 });
+
+const courses = ref<CourseCommonWithSpecifics[]>([]);
+const totalPage = ref(0);
+
+async function queryCourses(resetPage: boolean = false) {
+  querying.value = true;
+  if (resetPage = true) {
+    queryModel.value.page = 1;
+    courses.value.splice(0);
+  }
+  const coursesPage = await api.queryCourses(queryModel.value);
+  totalPage.value = coursesPage.total / coursesPage.pageSize;
+  courses.value.push(...coursesPage.contents);
+
+  querying.value = false;
+}
 </script>

@@ -1,7 +1,7 @@
 <script setup lang="tsx">
 import {
   NLayout, NLayoutHeader, NLayoutContent,
-  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage
+  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar
 } from 'naive-ui';
 import logo from './assets/logo.jpg';
 
@@ -49,8 +49,10 @@ const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
       </n-space>
     </n-layout-header>
     <n-layout-content
-      :style="{ position: 'absolute', top: headerHeight, height: `calc(100vh - ${headerHeight})`, padding: '20px', width: '100vw' }">
-      <router-view />
+      :style="{ position: 'absolute', top: headerHeight, height: `calc(100vh - ${headerHeight})`, padding: '15px 20px 30px', width: '100vw' }">
+      <n-scrollbar :style="{ maxHeight: `calc(100vh - ${headerHeight})` }">
+        <router-view />
+      </n-scrollbar>
     </n-layout-content>
     <!-- <n-layout-footer>Footer</n-layout-footer> -->
   </n-layout>
