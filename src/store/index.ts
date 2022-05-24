@@ -2,7 +2,7 @@ import { inject, InjectionKey } from "vue";
 import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
 import { api } from '../api';
 import { LoginCredit } from '../api/req';
-import { User } from "../api/resp";
+import { CourseScheduleWithCourseSpecific, User } from "../api/resp";
 import { FinalState, LoginState, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
@@ -19,11 +19,15 @@ const loginStateModule: Module<LoginState, RootState> = {
   }
 };
 
+const token = localStorage.getItem("loginToken") || '';
+api.token = token;
+
 export const store: Store<FinalState> = createStore<RootState>({
   strict: process.env.NODE_ENV !== 'production',
   state: {
-    loginToken: localStorage.getItem("loginToken") || '',
+    loginToken: token,
     user: JSON.parse(localStorage.getItem("user") || "{}"),
+    schedules: JSON.parse(localStorage.getItem("schedules") || "[]")
   },
   modules: {
     login: loginStateModule
@@ -35,8 +39,13 @@ export const store: Store<FinalState> = createStore<RootState>({
     },
     saveLoginToken(state, token: string) {
       state.loginToken = token;
+      api.token = token;
       localStorage.setItem("loginToken", token);
     },
+    saveSchedules(state, schedules: CourseScheduleWithCourseSpecific[]) {
+      state.schedules = schedules;
+      localStorage.setItem("schedules", JSON.stringify(schedules));
+    }
   },
   actions: {
     async login({ commit }, LoginCredit: LoginCredit) {
@@ -54,7 +63,6 @@ export const store: Store<FinalState> = createStore<RootState>({
     async fetchUserInfo({ commit, state }) {
       if (state.loginToken) {
         try {
-          api.token = state.loginToken;
           const user = await api.fetchUserInfo();
           commit("saveUserInfo", user);
           return user;
@@ -65,6 +73,13 @@ export const store: Store<FinalState> = createStore<RootState>({
         }
       }
     },
+    async fetchSchedules({ commit, state }) {
+      const schedules = await api.fetchSchedules({
+        userId: state.user?.id || 0,
+        semesterIds: []
+      });
+      commit("saveSchedules", schedules);
+    }
   }
 }) as Store<FinalState>;
 

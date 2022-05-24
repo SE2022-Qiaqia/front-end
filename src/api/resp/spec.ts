@@ -2,13 +2,23 @@ import { Model } from "./common";
 
 export enum Role {
   Student = 0,
-  Teacher = 1,
-  Admin = 2
+  Teacher = 100,
+  Admin = 200
 }
 
 export enum StudentCourseStatus {
   Normal = 0,
-  Withdraw = 1
+  Withdraw = 100
+}
+
+export enum DayOfWeek {
+  Sunday = 0,
+  Monday = 1,
+  Tuesday = 2,
+  Wednesday = 3,
+  Thursday = 4,
+  Friday = 5,
+  Saturday = 6,
 }
 
 export interface User extends Model {
@@ -48,7 +58,7 @@ export interface CourseSpecific extends CourseSpecificWithoutCommon {
 }
 
 export interface CourseSchedule extends Model {
-  dayOfWeek: number;
+  dayOfWeek: DayOfWeek;
   startHoursId: number;
   endHoursId: number;
   startWeekId: number;

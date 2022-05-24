@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
-import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData } from "./resp";
-import { LoginCredit } from "./req";
+import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific } from "./resp";
+import { GetSchedulesRequest, LoginCredit, QueryCoursesRequest } from "./req";
 
 export class Api {
 
@@ -50,8 +50,13 @@ export class Api {
     return response.data.data!;
   }
 
-  public async queryCourses(data: any): Promise<PageData<CourseCommonWithSpecifics>> {
+  public async queryCourses(data: QueryCoursesRequest): Promise<PageData<CourseCommonWithSpecifics>> {
     const response = await this._axios.post<ApiPageResponse<CourseCommonWithSpecifics>>('/course/list', data);
+    return response.data.data!;
+  }
+
+  public async fetchSchedules(data: GetSchedulesRequest): Promise<CourseScheduleWithCourseSpecific[]> {
+    const response = await this._axios.post<ApiResponse<CourseScheduleWithCourseSpecific[]>>('/course/schedules', data);
     return response.data.data!;
   }
 

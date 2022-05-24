@@ -20,8 +20,8 @@ const submitting = ref(false);
 const formRules: FormRules = {
   username: {
     required: true,
-    pattern: /^\d{9,10}$/,
-    message: '请输入正确的学号',
+    pattern: /^.{9,20}$/,
+    message: '请输入正确的学号或用户名',
     trigger: 'input'
   },
   password: {
@@ -85,10 +85,10 @@ onMounted(() => {
             <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
               require-mark-placement="right-hanging">
               <n-form-item label="用户名:" path="username">
-                <n-input v-model:value="form.username" placeholder="请输入学号" clearable />
+                <n-input v-model:value="form.username" placeholder="请输入学号或姓名" clearable @keydown.enter="login" />
               </n-form-item>
               <n-form-item label="密码:" path="password">
-                <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
+                <n-input v-model:value="form.password" type="password" placeholder="请输入密码" @keydown.enter="login" />
               </n-form-item>
               <div style="display: flex; justify-content: flex-end">
                 <n-button round type="primary" @click="login">

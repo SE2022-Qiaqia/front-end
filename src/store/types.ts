@@ -1,8 +1,9 @@
-import { User } from "../api/resp";
+import { CourseScheduleWithCourseSpecific, User } from "../api/resp";
 
 export interface RootState {
   loginToken: string;
   user?: User;
+  schedules: CourseScheduleWithCourseSpecific[];
 }
 
 export interface LoginState {

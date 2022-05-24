@@ -49,6 +49,7 @@ router.beforeEach((to, from, next) => {
             path: loginPath, query: { redirect: to.fullPath }
           });
         });
+      store.dispatch('fetchSchedules');
     } else {
       store.commit('login/setLoginReason', '需要登录才能访问此页面。');
       next({ path: loginPath, query: { redirect: to.fullPath } });

@@ -8,13 +8,14 @@
         <n-space vertical align="stretch" size="large">
           <n-form :model="queryModel" label-placement="left" label-width="auto" require-mark-placement="right-hanging">
             <n-form-item label="课程: ">
-              <n-input v-model:value="queryModel.name" placeholder="请输入课程名" />
+              <n-input v-model:value="queryModel.name" placeholder="请输入课程名" @keydown.enter="queryCourses(true)" />
             </n-form-item>
             <n-form-item label="学院: ">
               <n-select v-model:value="queryModel.collegesId" placeholder="请选择学院" :options="collegesOptions" multiple />
             </n-form-item>
             <n-form-item label="教师: ">
-              <n-input v-model:value="queryModel.teacherName" placeholder="请输入教师名字" />
+              <n-input v-model:value="queryModel.teacherName" placeholder="请输入教师名字"
+                @keydown.enter="queryCourses(true)" />
             </n-form-item>
             <n-form-item label="学期: ">
               <n-select v-model:value="queryModel.semester" placeholder="请选择学期" :options="semestersOptions" />
@@ -23,9 +24,14 @@
               <n-checkbox v-model:checked="queryModel.onlyLeftQuota" label="仅看有余量" />
             </n-form-item>
             <div style="display: flex; justify-content: flex-end">
-              <n-button round type="primary" @click="queryCourses(true)">
-                查询
-              </n-button>
+              <n-space>
+                <n-button round type="primary" @click="queryCourses(true)">
+                  查询
+                </n-button>
+                <n-button round ghost @click="resetQuery()">
+                  重置
+                </n-button>
+              </n-space>
             </div>
           </n-form>
 
@@ -54,6 +60,7 @@
                       <th>授课老师</th>
                       <th>授课地点</th>
                       <th>授课时间</th>
+                      <th>操作</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -71,6 +78,37 @@
                             ，第{{ schedule.startHoursId }}~{{ schedule.endHoursId }}节
                           </template>
                         </p>
+                      </td>
+                      <td>
+                        <template v-if="store.state.user?.role == Role.Admin">
+                          <n-space>
+                            <n-button ghost type="primary">
+                              强选
+                            </n-button>
+                            <n-button ghost type="error">
+                              强撤
+                            </n-button>
+                          </n-space>
+                        </template>
+                        <template v-if="store.state.user?.role == Role.Student">
+                          <n-space>
+                            <n-button ghost v-if="store.state.schedules.findIndex(x => x.id === specific.id) < 0"
+                              type="primary">
+                              选课
+                            </n-button>
+                            <n-button ghost v-else type="error">
+                              撤课
+                            </n-button>
+                          </n-space>
+                        </template>
+                        <template v-if="store.state.user?.role == Role.Teacher">
+                          <n-space>
+                            <n-button ghost v-if="store.state.schedules.findIndex(x => x.id === specific.id) < 0"
+                              type="primary">
+                              查看详情
+                            </n-button>
+                          </n-space>
+                        </template>
                       </td>
                     </tr>
                   </tbody>
@@ -96,11 +134,11 @@ import {
 } from 'naive-ui';
 import { onMounted, ref, watch, watchEffect } from 'vue';
 import { api } from '../api';
-import { College, CourseCommonWithSpecifics, Semester, dayName } from '../api/resp';
+import { College, CourseCommonWithSpecifics, Semester, dayName, Role } from '../api/resp';
 import { QueryCoursesRequest } from '../api/req';
-// import { injectStore } from '../store';
+import { injectStore } from '../store';
 
-// const store = injectStore();
+const store = injectStore();
 const queryModel = ref<QueryCoursesRequest>({
   name: '',
   collegesId: [],
@@ -158,5 +196,17 @@ async function queryCourses(resetPage: boolean = false) {
   courses.value.push(...coursesPage.contents);
 
   querying.value = false;
+}
+
+function resetQuery() {
+  queryModel.value = {
+    name: '',
+    collegesId: [],
+    teacherName: '',
+    onlyLeftQuota: true,
+    semester: semesters.value[0].id,
+    page: 1,
+    size: 10
+  };
 }
 </script>
