@@ -82,30 +82,30 @@
                       <td>
                         <template v-if="store.state.user?.role == Role.Admin">
                           <n-space>
-                            <n-button ghost type="primary">
+                            <n-button ghost type="primary" @click="confirmSelectCourse(specific, courseCommon)">
                               强选
                             </n-button>
-                            <n-button ghost type="error">
+                            <n-button ghost type="error" @click="confirmWithdrawCourse(specific, courseCommon)">
                               强撤
                             </n-button>
                           </n-space>
                         </template>
                         <template v-if="store.state.user?.role == Role.Student">
                           <n-space>
-                            <n-button ghost v-if="store.state.schedules.findIndex(x => x.id === specific.id) < 0"
-                              type="primary">
+                            <n-button ghost v-if="schedules.findIndex(x => x.id === specific.id) < 0" type="primary"
+                              @click="confirmSelectCourse(specific, courseCommon)">
                               选课
                             </n-button>
-                            <n-button ghost v-else type="error">
+                            <n-button ghost v-else type="error" @click="confirmWithdrawCourse(specific, courseCommon)">
                               撤课
                             </n-button>
                           </n-space>
                         </template>
                         <template v-if="store.state.user?.role == Role.Teacher">
                           <n-space>
-                            <n-button ghost v-if="store.state.schedules.findIndex(x => x.id === specific.id) < 0"
-                              type="primary">
+                            <n-button ghost v-if="schedules.findIndex(x => x.id === specific.id) < 0" type="primary">
                               查看详情
+                              <!-- TODO -->
                             </n-button>
                           </n-space>
                         </template>
@@ -122,6 +122,57 @@
 
       </n-spin>
 
+
+      <n-modal v-model:show="courseSelecting">
+        <n-card style="width: 500px" title="选课/撤课" :bordered="false" size="huge" role="dialog" aria-modal="true">
+          <n-spin :show="courseSelectingModel.operating">
+            <n-space vertical>
+              <n-space>
+                <n-form-item label="学生ID:" label-placement="left">
+                  <n-input v-model:value="courseSelectingModel.studentId" placeholder="请输入学号, 回车查询" clearable
+                    :disabled="store.state.user?.role !== Role.Admin" @keydown.enter="queryStudent" />
+                </n-form-item>
+                <n-button v-if="courseSelectingModel.operation === Operation.Select" type="primary"
+                  :disabled="courseSelectingModel.student?.role !== Role.Student" @click="selectOrWithdraw">选课
+                </n-button>
+                <n-button v-else-if="courseSelectingModel.operation === Operation.Withdraw" type="error"
+                  :disabled="courseSelectingModel.student?.role !== Role.Student" @click="selectOrWithdraw">撤课
+                </n-button>
+                <n-button v-else-if="courseSelectingModel.operation === Operation.Open" type="warning"
+                  :disabled="courseSelectingModel.student?.role !== Role.Teacher">开课</n-button>
+              </n-space>
+
+              <user-brief v-if="courseSelectingModel.student" :user="courseSelectingModel.student" />
+              <n-text v-else>未找到该用户</n-text>
+
+              <n-card>
+                <n-thing
+                  :title="`${courseSelectingModel.courseCommon.name} (课程号：${courseSelectingModel.courseCommon.id})`">
+                  <p>
+                    <span>开课学院：</span>
+                    <span>{{ courseSelectingModel.courseCommon.college.name }}</span>
+                    <br />
+                    <span>学分：</span>
+                    <span>{{ courseSelectingModel.courseCommon.credits }}</span>
+                    <br />
+                    <span>学时：</span>
+                    <span>{{ courseSelectingModel.courseCommon.hours }}</span>
+                    <br />
+                    <span>授课老师：</span>
+                    <span>
+                      {{ courseSelectingModel.course?.teacher?.realName }}
+                      ({{ courseSelectingModel.course?.teacher?.college.name }})
+                    </span>
+                    <br />
+                    <span>地点：</span>
+                    <span>{{ courseSelectingModel.course?.location }}</span>
+                  </p>
+                </n-thing>
+              </n-card>
+            </n-space>
+          </n-spin>
+        </n-card>
+      </n-modal>
     </n-grid-item>
   </n-grid>
 </template>
@@ -130,15 +181,19 @@
 import {
   NSpace, NGrid, NGridItem, NForm, NFormItem,
   NInput, NSelect, SelectOption, NCheckbox, NButton, NSpin,
-  NCollapse, NCollapseItem, NEmpty, NTable, NText
+  NCollapse, NCollapseItem, NEmpty, NTable, NText, NModal,
+  NCard, NThing, NP, useMessage
 } from 'naive-ui';
+import UserBrief from '../components/UserBrief.vue';
 import { onMounted, ref, watch, watchEffect } from 'vue';
 import { api } from '../api';
-import { College, CourseCommonWithSpecifics, Semester, dayName, Role } from '../api/resp';
+import { College, CourseCommonWithSpecifics, Semester, dayName, Role, CourseSpecific, User, CourseCommon, CourseSpecificWithoutCommon } from '../api/resp';
 import { QueryCoursesRequest } from '../api/req';
 import { injectStore } from '../store';
 
 const store = injectStore();
+const message = useMessage();
+
 const queryModel = ref<QueryCoursesRequest>({
   name: '',
   collegesId: [],
@@ -170,6 +225,44 @@ watchEffect(() => {
   }));
 });
 
+const schedules = ref(store.state.schedules);
+watchEffect(() => {
+  schedules.value = store.state.schedules;
+});
+
+const courseSelecting = ref(false);
+enum Operation {
+  Select = 1, Withdraw, Open
+};
+const courseSelectingModel = ref<{
+  studentId?: string;
+  student?: User;
+  course?: CourseSpecificWithoutCommon;
+  courseCommon: CourseCommon;
+  operating: boolean;
+  operation?: Operation;
+}>({
+  studentId: store.state.user?.role === Role.Admin ? '' : (store.state.user?.id + ''),
+  student: store.state.user,
+  operating: false,
+  operation: Operation.Select,
+  courseCommon: (undefined as any)
+});
+
+function confirmSelectCourse(course: CourseSpecificWithoutCommon, common: CourseCommon) {
+  courseSelectingModel.value.operation = Operation.Select;
+  courseSelectingModel.value.course = course;
+  courseSelectingModel.value.courseCommon = common;
+  courseSelecting.value = true;
+}
+
+function confirmWithdrawCourse(course: CourseSpecificWithoutCommon, common: CourseCommon) {
+  courseSelectingModel.value.operation = Operation.Withdraw;
+  courseSelectingModel.value.course = course;
+  courseSelectingModel.value.courseCommon = common;
+  courseSelecting.value = true;
+}
+
 onMounted(() => {
   api.fetchColleges()
     .then(res => colleges.value = res);
@@ -196,6 +289,40 @@ async function queryCourses(resetPage: boolean = false) {
   courses.value.push(...coursesPage.contents);
 
   querying.value = false;
+}
+
+async function queryStudent() {
+  courseSelectingModel.value.operating = true;
+  try {
+    courseSelectingModel.value.student = await api.fetchOtherUserInfo(courseSelectingModel.value.studentId!);
+  } catch (e: any) {
+    courseSelectingModel.value.student = undefined;
+  }
+  courseSelectingModel.value.operating = false;
+}
+
+async function selectOrWithdraw() {
+  courseSelectingModel.value.operating = true;
+  if (courseSelectingModel.value.operation === Operation.Select) {
+    try {
+      await api.selectCourse(parseInt(courseSelectingModel.value.studentId!), courseSelectingModel.value.course?.id!);
+      message.success('选课成功！');
+      courseSelectingModel.value.operation = Operation.Withdraw;
+      store.dispatch('fetchSchedules');
+    } catch (error) {
+      message.error('选课失败: ' + (error as Error).message);
+    }
+  } else if (courseSelectingModel.value.operation === Operation.Withdraw) {
+    try {
+      await api.unselectCourse(parseInt(courseSelectingModel.value.studentId!), courseSelectingModel.value.course?.id!)
+      message.warning('撤课成功！');
+      courseSelectingModel.value.operation = Operation.Select;
+      store.dispatch('fetchSchedules');
+    } catch (error) {
+      message.error('撤课失败: ' + (error as Error).message);
+    }
+  }
+  courseSelectingModel.value.operating = false;
 }
 
 function resetQuery() {

@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific } from "./resp";
+import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific } from "./resp";
 import { GetSchedulesRequest, LoginCredit, QueryCoursesRequest } from "./req";
 
 export class Api {
@@ -35,6 +35,11 @@ export class Api {
     return response.data.data!;
   }
 
+  public async fetchOtherUserInfo(id: string | number): Promise<User> {
+    const response = await this._axios.get<ApiResponse<User>>(`/user/${id}`);
+    return response.data.data!;
+  }
+
   public async fetchColleges(name: string = ""): Promise<College[]> {
     const response = await this._axios.post<ApiResponse<College[]>>('/college/list', { name });
     return response.data.data || [];
@@ -57,6 +62,24 @@ export class Api {
 
   public async fetchSchedules(data: GetSchedulesRequest): Promise<CourseScheduleWithCourseSpecific[]> {
     const response = await this._axios.post<ApiResponse<CourseScheduleWithCourseSpecific[]>>('/course/schedules', data);
+    return response.data.data!;
+  }
+
+  public async selectCourse(studentId: number, courseSpecificId: number): Promise<CourseSpecific> {
+    const response = await this._axios.post<ApiResponse<CourseSpecific>>('/course/select', {
+      studentId: studentId,
+      courseId: courseSpecificId
+    });
+    return response.data.data!;
+  }
+
+  public async unselectCourse(studentId: number, courseSpecificId: number): Promise<CourseSpecific> {
+    const response = await this._axios.delete<ApiResponse<CourseSpecific>>('/course/select', {
+      data: {
+        studentId: studentId,
+        courseId: courseSpecificId
+      }
+    });
     return response.data.data!;
   }
 
