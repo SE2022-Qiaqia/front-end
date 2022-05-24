@@ -49,7 +49,7 @@ const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
       </n-space>
     </n-layout-header>
     <n-layout-content
-      :style="{ position: 'absolute', top: headerHeight, height: `calc(100vh - ${headerHeight})`, padding: '15px 20px 30px', width: '100vw' }">
+      :style="{ position: 'absolute', top: headerHeight, height: `calc(100vh - ${headerHeight})`, width: '100vw' }">
       <n-scrollbar :style="{ maxHeight: `calc(100vh - ${headerHeight})` }">
         <router-view />
       </n-scrollbar>

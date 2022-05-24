@@ -12,12 +12,12 @@ const schedules = store.state.schedules;
 </script>
 
 <template>
-  <n-grid :cols="4" :x-gap="12">
-    <n-grid-item :span="3">
+  <n-grid :cols="12" :x-gap="12">
+    <n-grid-item :offset="1" :span="8">
       <!-- <course-schedule-mock /> -->
       <course-schedule-real :schedules="schedules" />
     </n-grid-item>
-    <n-grid-item>
+    <n-grid-item :span="2">
       <user-brief :user="student" />
     </n-grid-item>
   </n-grid>
