@@ -264,15 +264,14 @@ function confirmWithdrawCourse(course: CourseSpecificWithoutCommon, common: Cour
 }
 
 onMounted(() => {
-  api.fetchColleges()
-    .then(res => colleges.value = res);
-  api.fetchSemesters()
-    .then(res => semesters.value = res);
-  api.fetchCurrentSemester()
-    .then(res => {
-      currentSemesterId.value = res.id;
-      queryModel.value.semester = res.id;
-    });
+  store.dispatch('fetchColleges').then(() => {
+    colleges.value = store.state.colleges;
+  });
+  store.dispatch('fetchSemesters').then(() => {
+    semesters.value = store.state.semesters;
+    currentSemesterId.value = store.state.currentSemester?.id!;
+    queryModel.value.semester = store.state.currentSemester?.id!;
+  });
 });
 
 const courses = ref<CourseCommonWithSpecifics[]>([]);

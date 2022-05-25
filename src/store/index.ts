@@ -2,7 +2,8 @@ import { inject, InjectionKey } from "vue";
 import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
 import { api } from '../api';
 import { LoginCredit } from '../api/req';
-import { CourseScheduleWithCourseSpecific, User } from "../api/resp";
+import { College, CourseScheduleWithCourseSpecific, Semester, User } from "../api/resp";
+import { colleges } from "../models/mock";
 import { FinalState, LoginState, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
@@ -27,7 +28,10 @@ export const store: Store<FinalState> = createStore<RootState>({
   state: {
     loginToken: token,
     user: JSON.parse(localStorage.getItem("user") || "{}"),
-    schedules: JSON.parse(localStorage.getItem("schedules") || "[]")
+    schedules: JSON.parse(localStorage.getItem("schedules") || "[]"),
+    colleges: JSON.parse(localStorage.getItem("colleges") || "[]"),
+    semesters: JSON.parse(localStorage.getItem("semesters") || "[]"),
+    currentSemester: JSON.parse(localStorage.getItem("currentSemester") || "{}")
   },
   modules: {
     login: loginStateModule
@@ -45,6 +49,16 @@ export const store: Store<FinalState> = createStore<RootState>({
     saveSchedules(state, schedules: CourseScheduleWithCourseSpecific[]) {
       state.schedules = schedules;
       localStorage.setItem("schedules", JSON.stringify(schedules));
+    },
+    saveColleges(state, colleges: College[]) {
+      state.colleges = colleges;
+      localStorage.setItem("colleges", JSON.stringify(colleges));
+    },
+    saveSemesters(state, { semesters, currentSemester }: { semesters: Semester[], currentSemester: Semester }) {
+      state.semesters = semesters;
+      state.currentSemester = currentSemester;
+      localStorage.setItem("semesters", JSON.stringify(semesters));
+      localStorage.setItem("currentSemester", JSON.stringify(currentSemester));
     }
   },
   actions: {
@@ -79,6 +93,15 @@ export const store: Store<FinalState> = createStore<RootState>({
         semesterIds: []
       });
       commit("saveSchedules", schedules);
+    },
+    async fetchColleges({ commit, state }) {
+      const colleges = await api.fetchColleges();
+      commit("saveColleges", colleges);
+    },
+    async fetchSemesters({ commit, state }) {
+      const semesters = await api.fetchSemesters();
+      const currentSemester = await api.fetchCurrentSemester();
+      commit("saveSemesters", { semesters, currentSemester });
     }
   }
 }) as Store<FinalState>;
