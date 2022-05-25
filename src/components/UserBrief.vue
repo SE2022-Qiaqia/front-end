@@ -15,7 +15,7 @@ const props = defineProps<{ user: User }>();
 
 <template>
   <n-card>
-    <n-thing style="width: 400px;" :title="user.realName" :description="roles[user.role]">
+    <n-thing v-if="user?.id" style="width: 400px;" :title="user.realName" :description="roles[user.role]">
       <!-- <template #avatar>
         <n-avatar :src="user.avatar || logo" size="large" />
       </template> -->

@@ -74,13 +74,18 @@ export const store: Store<FinalState> = createStore<RootState>({
       }
     },
     async logout({ commit }) {
-      if (await api.logout()) {
+      try {
+        await api.logout()
+      } catch (error) {
+        console.log('登出失败', error);
+      } finally {
         commit('saveLoginToken', '');
         commit('saveUserInfo', {});
         commit('saveSchedules', []);
         commit('saveColleges', []);
         commit('saveSemesters', { semesters: [], currentSemester: {} });
       }
+
     },
     async fetchUserInfo({ commit, state }) {
       if (state.loginToken) {

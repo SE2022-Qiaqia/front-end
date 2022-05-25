@@ -1,4 +1,5 @@
 export * from './course';
+export * from './user';
 
 export interface LoginCredit {
   username: string;

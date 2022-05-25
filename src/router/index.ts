@@ -28,6 +28,14 @@ export const router = createRouter({
         title: '选课',
         needAuth: true
       }
+    },
+    {
+      path: '/profile',
+      component: () => import('../pages/Profile.vue'),
+      meta: {
+        title: '个人信息',
+        needAuth: true
+      }
     }
   ]
 });
