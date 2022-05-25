@@ -59,6 +59,10 @@ async function updatePassword(password: string) {
 </script>
 
 <template>
-  <profile-editor :user="user" :colleges="colleges" :updating-info="updatingInfo" :updating-password="updatingPassword"
-    @update-info="updateUserInfo" @update-password="updatePassword" />
+  <n-grid :cols="12">
+    <n-grid-item :offset="1" :span="10">
+      <profile-editor :user="user" :colleges="colleges" :updating-info="updatingInfo"
+        :updating-password="updatingPassword" @update-info="updateUserInfo" @update-password="updatePassword" />
+    </n-grid-item>
+  </n-grid>
 </template>

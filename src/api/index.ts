@@ -56,8 +56,18 @@ export class Api {
     return response.data.data!;
   }
 
+  public async updateUserInfo(id: number, data: UpdateUserRequest): Promise<User> {
+    const response = await this._axios.post<ApiResponse<User>>(`/user/${id}`, data);
+    return response.data.data!;
+  }
+
   public async updatePassword(password: string): Promise<boolean> {
     const response = await this._axios.post<ApiResponse<boolean>>('/user/pwd', { password });
+    return response.data.data!;
+  }
+
+  public async updateUserPassword(id: number, password: string): Promise<boolean> {
+    const response = await this._axios.post<ApiResponse<boolean>>(`/user/${id}/pwd`, { password });
     return response.data.data!;
   }
 

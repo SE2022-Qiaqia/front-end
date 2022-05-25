@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { defineProps, ref, watch } from 'vue';
-import { User, College } from '../api/resp';
+import { defineProps, ref, watch, watchEffect } from 'vue';
+import { User, College, Role } from '../api/resp';
 import {
   NGrid, NGridItem, NForm, NFormItem, NInput,
   NTabs, NTabPane, FormRules, NButton, SelectOption,
@@ -21,12 +21,27 @@ const emits = defineEmits<{
 }>();
 
 const collegesOptions = ref<SelectOption[]>();
-watch(() => props.colleges, () => {
+watchEffect(() => {
   collegesOptions.value = props.colleges.map(c => ({
     value: c.id,
     label: c.name
   }));
 });
+
+const rolesOptions: SelectOption[] = [
+  {
+    value: Role.Student,
+    label: '学生',
+  },
+  {
+    value: Role.Teacher,
+    label: '教师',
+  },
+  {
+    value: Role.Admin,
+    label: '管理员',
+  }
+];
 
 const info = ref<UpdateUserRequest>({
   username: props.user.username,
@@ -108,8 +123,8 @@ function updatePassword() {
 </script>
 
 <template>
-  <n-grid :cols="12" :x-gap="12">
-    <n-grid-item :offset="1" :span="8">
+  <n-grid :cols="10" :x-gap="12">
+    <n-grid-item :span="7">
       <n-tabs type="line" animated>
         <n-tab-pane name="info" tab="个人信息">
           <n-form :model="info" :rules="formRules" label-placement="left" label-width="auto"
@@ -125,6 +140,9 @@ function updatePassword() {
             </n-form-item>
             <n-form-item label="学院: " path="collegeId">
               <n-select v-model:value="info.collegeId" placeholder="请选择学院" :options="collegesOptions" />
+            </n-form-item>
+            <n-form-item label="角色: ">
+              <n-select v-model:value="info.role" placeholder="请选择角色" :options="rolesOptions" />
             </n-form-item>
             <div style="display: flex; justify-content: flex-end">
               <n-button round type="primary" ghost @click="updateInfo" :loading="updatingInfo">
@@ -153,7 +171,7 @@ function updatePassword() {
         </n-tab-pane>
       </n-tabs>
     </n-grid-item>
-    <n-grid-item :span="2">
+    <n-grid-item :span="3">
       <user-brief :user="user" />
     </n-grid-item>
   </n-grid>

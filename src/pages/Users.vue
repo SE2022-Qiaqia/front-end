@@ -1,14 +1,16 @@
 <script setup lang="tsx">
 import {
   NGrid, NGridItem, NSpace, NCard, NButtonGroup, NButton,
-  NTag, NTime, NForm, NFormItem, NIcon, NDataTable, PaginationProps,
+  NTag, NTime, NForm, NFormItem, NIcon, NDataTable, NModal,
   useMessage, DataTableColumns, useDialog
 } from 'naive-ui';
+import ProfileEditor from '../components/ProfileEditor.vue';
 import { Add24Filled, Edit16Regular, Delete24Regular } from '@vicons/fluent';
-import { onMounted, reactive, ref } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { injectStore } from '../store';
-import { Role, User } from '../api/resp';
+import { College, Role, User } from '../api/resp';
 import { api } from '../api';
+import { UpdateUserRequest } from '../api/req';
 
 const store = injectStore();
 const message = useMessage();
@@ -102,8 +104,11 @@ const columns = ref<DataTableColumns>([
       };
       return (
         <NSpace>
-          <NButton round ghost v-slots={slotsEdit} type="info"></NButton>
-          {/* TODO 编辑用户信息 */}
+          <NButton round ghost v-slots={slotsEdit} type="info"
+            onClick={() => {
+              isEditingUser.value = true;
+              editedUser.value = user;
+            }}></NButton>
           <NButton round ghost v-slots={slotsDelete} type="error" loading={!!(deleting[user.id])}
             onClick={() => deleteUser(user)}
           ></NButton>
@@ -158,9 +163,62 @@ function deleteUser(user: User) {
   });
 }
 
+const colleges = ref<College[]>([]);
+
 onMounted(async () => {
   updateUsers(pagination.page, pagination.pageSize);
+
+  store.dispatch('fetchColleges').then(() => {
+    colleges.value = store.state.colleges;
+    console.log(colleges)
+  });
 });
+const newUserInfo = ref<UpdateUserRequest>({
+  username: '',
+  realName: '',
+  collegeId: 0,
+  role: Role.Student,
+  entranceYear: new Date().getFullYear(),
+});
+const editedUser = ref<User>();
+const isEditingUser = ref(false);
+watch(() => editedUser, () => {
+  newUserInfo.value = {
+    username: editedUser.value!.username,
+    realName: editedUser.value!.realName,
+    collegeId: editedUser.value!.college.id,
+    role: editedUser.value!.role,
+    entranceYear: editedUser.value!.entranceYear,
+  };
+})
+
+
+const updatingInfo = ref(false);
+async function updateUserInfo(info: UpdateUserRequest) {
+  try {
+    updatingInfo.value = true;
+    editedUser.value = await api.updateUserInfo(editedUser.value!.id, info);
+    message.success('更新个人信息成功！');
+    updateUsers(pagination.page, pagination.pageSize);
+  } catch (error) {
+    message.error('更新个人信息失败！' + (error as any).message);
+  } finally {
+    updatingInfo.value = false;
+  }
+}
+
+const updatingPassword = ref(false);
+async function updatePassword(password: string) {
+  try {
+    updatingPassword.value = true;
+    await api.updateUserPassword(editedUser.value!.id, password);
+    message.success('修改密码成功！');
+  } catch (error) {
+    message.error('修改密码失败！' + (error as any).message);
+  } finally {
+    updatingPassword.value = false;
+  }
+}
 </script>
 
 <template>
@@ -186,6 +244,13 @@ onMounted(async () => {
 
       </n-space>
       <!-- </n-card> -->
+
+      <n-modal v-model:show="isEditingUser">
+        <n-card style="width: 80%" title="选课/撤课" :bordered="false" size="huge" role="dialog" aria-modal="true">
+          <profile-editor v-if="!!editedUser" :user="editedUser" :colleges="colleges" :updating-info="updatingInfo"
+            :updating-password="updatingPassword" @update-info="updateUserInfo" @update-password="updatePassword" />
+        </n-card>
+      </n-modal>
     </n-grid-item>
   </n-grid>
 </template>
