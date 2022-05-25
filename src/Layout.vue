@@ -3,7 +3,7 @@ import {
   NLayout, NLayoutHeader, NLayoutContent, NButton,
   NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar
 } from 'naive-ui';
-import { ref, watchEffect } from 'vue';
+import { onMounted, onUpdated, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import logo from './assets/logo.jpg';
 import { injectStore } from './store';
@@ -60,6 +60,13 @@ function logout() {
     message.error('退出失败！' + error.message);
   });
 }
+
+watchEffect(() => {
+  if (store.state.routerPushReason) {
+    message.info(store.state.routerPushReason);
+    store.commit('saveRouterPushReason', null);
+  }
+})
 </script>
 
 <template>

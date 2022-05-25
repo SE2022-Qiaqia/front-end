@@ -30,7 +30,8 @@ export const store: Store<FinalState> = createStore<RootState>({
     schedules: JSON.parse(localStorage.getItem("schedules") || "[]"),
     colleges: JSON.parse(localStorage.getItem("colleges") || "[]"),
     semesters: JSON.parse(localStorage.getItem("semesters") || "[]"),
-    currentSemester: JSON.parse(localStorage.getItem("currentSemester") || "{}")
+    currentSemester: JSON.parse(localStorage.getItem("currentSemester") || "{}"),
+    routerPushReason: ''
   },
   modules: {
     login: loginStateModule
@@ -58,6 +59,12 @@ export const store: Store<FinalState> = createStore<RootState>({
       state.currentSemester = currentSemester;
       localStorage.setItem("semesters", JSON.stringify(semesters));
       localStorage.setItem("currentSemester", JSON.stringify(currentSemester));
+    },
+    saveRouterPushReason(state, reason: string) {
+      state.routerPushReason = reason;
+    },
+    clearRouterPushReason(state) {
+      state.routerPushReason = '';
     }
   },
   actions: {

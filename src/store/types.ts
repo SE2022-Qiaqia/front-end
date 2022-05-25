@@ -7,6 +7,7 @@ export interface RootState {
   colleges: College[];
   semesters: Semester[];
   currentSemester?: Semester;
+  routerPushReason: string;
 }
 
 export interface LoginState {

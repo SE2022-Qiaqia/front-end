@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from "vue-router";
+import { Role } from "../api/resp";
 import store from '../store';
 
 const loginPath = "/login";
@@ -36,7 +37,16 @@ export const router = createRouter({
         title: '个人信息',
         needAuth: true
       }
-    }
+    },
+    {
+      path: '/users',
+      component: () => import('../pages/Users.vue'),
+      meta: {
+        title: '用户管理',
+        needAuth: true,
+        role: [Role.Admin]
+      }
+    },
   ]
 });
 
@@ -51,6 +61,13 @@ router.beforeEach((to, from, next) => {
       }
 
       store.dispatch('fetchUserInfo')
+        .then(() => {
+          if (to.meta.role !== undefined && !(to.meta.role as Array<Role>).includes(store.state.user?.role!)) {
+            console.log("当前无权访问对应页面");
+            store.commit('saveRouterPushReason', '您的身份不符合此页面的访问权限');
+            router.push('/');
+          }
+        })
         .catch(() => {
           store.commit('login/setLoginReason', '获取用户信息失败，需要重新登录。');
           router.push({
