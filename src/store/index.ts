@@ -3,7 +3,6 @@ import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
 import { api } from '../api';
 import { LoginCredit } from '../api/req';
 import { College, CourseScheduleWithCourseSpecific, Semester, User } from "../api/resp";
-import { colleges } from "../models/mock";
 import { FinalState, LoginState, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
