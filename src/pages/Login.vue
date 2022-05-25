@@ -47,7 +47,7 @@ onMounted(() => {
 const formRules: FormRules = {
   id: {
     required: true,
-    pattern: /^.{9,20}$/,
+    pattern: /^.{9,16}$/,
     message: '请输入正确的学号',
     trigger: 'input'
   },
