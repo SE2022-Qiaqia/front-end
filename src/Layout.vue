@@ -1,13 +1,21 @@
 <script setup lang="tsx">
 import {
-  NLayout, NLayoutHeader, NLayoutContent,
+  NLayout, NLayoutHeader, NLayoutContent, NButton,
   NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar
 } from 'naive-ui';
+import { ref, watchEffect } from 'vue';
+import { useRouter } from 'vue-router';
 import logo from './assets/logo.jpg';
+import { injectStore } from './store';
 
-// const message = useMessage(); // TODO 功能完全实现后记得去除
-// message.warning('DEBUG: 当前未使用实际实现的API，仅为内部实现的用于测试的"API"。', { duration: 5000 });
+const store = injectStore();
+const message = useMessage();
+const router = useRouter();
 
+const user = ref(store.state.user);
+watchEffect(() => {
+  user.value = store.state.user;
+});
 
 const headerContentHeight = '70px';
 const headerPadding = '20px';
@@ -39,13 +47,27 @@ const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
     key: "docs"
   },
 ];
+
+function logout() {
+  store.dispatch('logout').then(() => {
+    if (!store.state.loginToken) {
+      message.success('退出成功');
+      router.push('/login');
+    } else {
+      message.error('退出失败');
+    }
+  }).catch((error) => {
+    message.error('退出失败！' + error.message);
+  });
+}
 </script>
 
 <template>
   <n-layout position="absolute">
     <n-layout-header :style="{ position: 'absolute', padding: headerPadding }" bordered>
-      <n-space align="center">
+      <n-space align="center" justify="space-between">
         <n-menu mode="horizontal" :options="navMenuOptions" />
+        <n-button v-if="user?.id" text tag="a" @click="logout">退出登录</n-button>
       </n-space>
     </n-layout-header>
     <n-layout-content

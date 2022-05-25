@@ -30,6 +30,12 @@ export class Api {
     return this.token;
   }
 
+  public async logout(): Promise<boolean> {
+    const response = await this._axios.get<ApiResponse<boolean>>('/logout');
+    this.token = '';
+    return response.data.data!;
+  }
+
   public async register(data: RegisterInfo): Promise<boolean> {
     const response = await this._axios.post<ApiResponse<boolean>>('/register', data);
     return response.data.data!;
@@ -87,7 +93,7 @@ export class Api {
     });
     return response.data.data!;
   }
-  
+
   public async canRegister(): Promise<boolean> {
     const response = await this._axios.get<ApiResponse<boolean>>('/register/enable');
     return response.data.data!;
