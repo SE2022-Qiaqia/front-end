@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { NSpace, NCard, NForm, NFormItem, NInput, NTabs, NTabPane, FormRules, NSpin, NButton, useMessage } from 'naive-ui';
-import { onMounted, ref } from 'vue';
+import {
+  NSpace, NCard, NForm, NFormItem, NInput, NInputNumber, NTabs, NTabPane,
+  FormRules, NSpin, NButton, NSelect, useMessage, SelectOption, FormInst
+} from 'naive-ui';
+import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { User } from '../api/resp';
+import { api } from '../api';
+import { College, User } from '../api/resp';
 import { injectStore } from '../store';
 
 const store = injectStore();
@@ -11,17 +15,52 @@ const route = useRoute();
 const router = useRouter();
 
 const form = ref({
-  username: '20191122333',
+  id: 2019000000000,
+  username: 'Hello',
+  realName: '',
   password: '',
-  passwordRepeat: ''
+  passwordRepeat: '',
+  collegeId: 1
 });
 const submitting = ref(false);
+const formRef = ref<FormInst | null>(null);
+const canRegister = ref(true);
+
+const tab = ref('login');
+
+const colleges = ref<College[]>([]);
+const collegesOptions = ref<SelectOption[]>();
+watch(() => colleges.value, () => {
+  collegesOptions.value = colleges.value.map(c => ({
+    value: c.id,
+    label: c.name
+  }));
+});
+
+
+onMounted(() => {
+  store.dispatch('fetchColleges').then(() => {
+    colleges.value = store.state.colleges;
+  });
+});
 
 const formRules: FormRules = {
-  username: {
+  id: {
     required: true,
     pattern: /^.{9,20}$/,
-    message: '请输入正确的学号或用户名',
+    message: '请输入正确的学号',
+    trigger: 'input'
+  },
+  username: {
+    required: true,
+    pattern: /^.{5,20}$/,
+    message: '请输入正确的用户名',
+    trigger: 'input'
+  },
+  realName: {
+    required: true,
+    pattern: /^.{1,15}$/,
+    message: '请输入正确的姓名',
     trigger: 'input'
   },
   password: {
@@ -50,7 +89,13 @@ const formRules: FormRules = {
         return form.value.password === value;
       }
     }
-  ]
+  ],
+  collegeId: {
+    required: true,
+    message: '请选择学院',
+    trigger: 'input',
+    pattern: /^.{1,}$/,
+  }
 };
 
 async function login() {
@@ -66,9 +111,41 @@ async function login() {
   submitting.value = false;
 }
 
-onMounted(() => {
+async function register() {
+  try {
+    await formRef.value?.validate();
+  } catch (error) {
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    const ok = await api.register({
+      id: form.value.id,
+      username: form.value.username,
+      realName: form.value.realName,
+      collegeId: form.value.collegeId,
+      password: form.value.password
+    });
+    if (!ok) { // 一般应该不会发生，都是抛异常
+      message.error('注册失败！');
+    } else {
+      message.success('注册成功！');
+      tab.value = 'login';
+    }
+  } catch (error) {
+    message.error(`注册失败！${(error as Error).message}`);
+  }
+  submitting.value = false;
+}
+
+onMounted(async () => {
   if (store.state.login.loginReason) {
     message.error(store.state.login.loginReason);
+  }
+
+  if (!(await api.canRegister())) {
+    canRegister.value = false;
   }
 });
 </script>
@@ -79,7 +156,7 @@ onMounted(() => {
 
       <n-card title="加入选课系统" size="huge">
 
-        <n-tabs type="line" animated>
+        <n-tabs type="line" animated v-model:value="tab">
 
           <n-tab-pane name="login" tab="登录">
             <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
@@ -91,7 +168,7 @@ onMounted(() => {
                 <n-input v-model:value="form.password" type="password" placeholder="请输入密码" @keydown.enter="login" />
               </n-form-item>
               <div style="display: flex; justify-content: flex-end">
-                <n-button round type="primary" @click="login">
+                <n-button :disabled="!form.username || !form.password" round type="primary" @click="login">
                   登录
                 </n-button>
               </div>
@@ -99,10 +176,16 @@ onMounted(() => {
           </n-tab-pane>
 
           <n-tab-pane name="register" tab="注册">
-            <n-form :model="form" :rules="formRules" label-placement="left" label-width="auto"
-              require-mark-placement="right-hanging">
+            <n-form ref="formRef" :model="form" :rules="formRules" label-placement="left" label-width="auto"
+              require-mark-placement="right-hanging" :disabled="!canRegister">
+              <n-form-item label="学号:" path="id">
+                <n-input-number v-model:value="form.id" placeholder="请输入学号" clearable />
+              </n-form-item>
               <n-form-item label="用户名:" path="username">
-                <n-input v-model:value="form.username" placeholder="请输入学号" clearable />
+                <n-input v-model:value="form.username" placeholder="请输入用户名" clearable />
+              </n-form-item>
+              <n-form-item label="姓名:" path="realName">
+                <n-input v-model:value="form.realName" placeholder="请输入姓名" clearable />
               </n-form-item>
               <n-form-item label="密码:" path="password">
                 <n-input v-model:value="form.password" type="password" placeholder="请输入密码" />
@@ -110,9 +193,12 @@ onMounted(() => {
               <n-form-item label="确认密码:" path="passwordRepeat">
                 <n-input v-model:value="form.passwordRepeat" type="password" placeholder="请再次确认密码" />
               </n-form-item>
+              <n-form-item label="学院: " path="collegeId">
+                <n-select v-model:value="form.collegeId" placeholder="请选择学院" :options="collegesOptions" />
+              </n-form-item>
               <div style="display: flex; justify-content: flex-end">
-                <n-button round type="primary" ghost>
-                  注册
+                <n-button round :type="canRegister ? 'primary' : 'error'" ghost @click="register" :disabled="!canRegister">
+                  {{ canRegister ? '注册' : '未开放注册' }}
                 </n-button>
               </div>
             </n-form>

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific } from "./resp";
-import { GetSchedulesRequest, LoginCredit, QueryCoursesRequest } from "./req";
+import { GetSchedulesRequest, LoginCredit, QueryCoursesRequest, RegisterInfo } from "./req";
 
 export class Api {
 
@@ -28,6 +28,11 @@ export class Api {
     const response = await this._axios.post<ApiResponse>('/login', login);
     this.token = response.data.data!;
     return this.token;
+  }
+
+  public async register(data: RegisterInfo): Promise<boolean> {
+    const response = await this._axios.post<ApiResponse<boolean>>('/register', data);
+    return response.data.data!;
   }
 
   public async fetchUserInfo(): Promise<User> {
@@ -82,6 +87,12 @@ export class Api {
     });
     return response.data.data!;
   }
+  
+  public async canRegister(): Promise<boolean> {
+    const response = await this._axios.get<ApiResponse<boolean>>('/register/enable');
+    return response.data.data!;
+  }
+
 
 }
 

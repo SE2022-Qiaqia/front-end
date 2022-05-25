@@ -8,6 +8,8 @@ export interface LoginCredit {
 export interface RegisterInfo {
   username: string;
   password: string;
+  collegeId: number;
+  realName: string;
   id: number;
 }
 
