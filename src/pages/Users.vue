@@ -1,7 +1,7 @@
 <script setup lang="tsx">
 import {
-  NGrid, NGridItem, NSpace, NCard, NButtonGroup, NButton,
-  NTag, NTime, NForm, NFormItem, NIcon, NDataTable, NModal,
+  NGrid, NGridItem, NSpace, NCard, NSpin, NButton,
+  NTag, NTime, NText, NFormItem, NInput, NIcon, NDataTable, NModal,
   useMessage, DataTableColumns, useDialog
 } from 'naive-ui';
 import ProfileEditor from '../components/ProfileEditor.vue';
@@ -106,6 +106,7 @@ const columns = ref<DataTableColumns>([
         <NSpace>
           <NButton round ghost v-slots={slotsEdit} type="info"
             onClick={() => {
+              queryUserId.value = user.id + '';
               isEditingUser.value = true;
               editedUser.value = user;
             }}></NButton>
@@ -170,7 +171,6 @@ onMounted(async () => {
 
   store.dispatch('fetchColleges').then(() => {
     colleges.value = store.state.colleges;
-    console.log(colleges)
   });
 });
 const newUserInfo = ref<UpdateUserRequest>({
@@ -180,6 +180,8 @@ const newUserInfo = ref<UpdateUserRequest>({
   role: Role.Student,
   entranceYear: new Date().getFullYear(),
 });
+const queryUserId = ref<string>('');
+const isQueryingUser = ref(false);
 const editedUser = ref<User>();
 const isEditingUser = ref(false);
 watch(() => editedUser, () => {
@@ -192,6 +194,21 @@ watch(() => editedUser, () => {
   };
 })
 
+async function justEdit() {
+  queryUserId.value = '';
+  editedUser.value = undefined;
+  isEditingUser.value = true;
+}
+
+async function queryStudent() {
+  isQueryingUser.value = true;
+  try {
+    editedUser.value = await api.fetchOtherUserInfo(queryUserId.value);
+  } catch (e: any) {
+    editedUser.value = undefined;
+  }
+  isQueryingUser.value = false;
+}
 
 const updatingInfo = ref(false);
 async function updateUserInfo(info: UpdateUserRequest) {
@@ -228,15 +245,25 @@ async function updatePassword(password: string) {
       <n-space vertical>
 
         <n-space justify="space-between">
-          <n-button ghost type="primary">
-            <template #icon>
-              <n-icon>
-                <Add24Filled />
-              </n-icon>
-            </template>
-            <!-- TODO 增加用户 -->
-            增加用户
-          </n-button>
+          <n-space>
+            <n-button ghost type="primary">
+              <template #icon>
+                <n-icon>
+                  <Add24Filled />
+                </n-icon>
+              </template>
+              <!-- TODO 增加用户 -->
+              增加
+            </n-button>
+            <n-button ghost type="info" @click="justEdit">
+              <template #icon>
+                <n-icon>
+                  <Edit16Regular />
+                </n-icon>
+              </template>
+              编辑
+            </n-button>
+          </n-space>
         </n-space>
 
         <n-data-table remote :columns="columns" :data="users" :pagination="pagination" :loading="loading"
@@ -247,8 +274,19 @@ async function updatePassword(password: string) {
 
       <n-modal v-model:show="isEditingUser">
         <n-card style="width: 80%" title="选课/撤课" :bordered="false" size="huge" role="dialog" aria-modal="true">
-          <profile-editor v-if="!!editedUser" :user="editedUser" :colleges="colleges" :updating-info="updatingInfo"
-            :updating-password="updatingPassword" @update-info="updateUserInfo" @update-password="updatePassword" />
+          <n-spin :show="isQueryingUser">
+            <n-space vertical>
+
+              <n-form-item label="学生ID:" label-placement="left" style="max-width: 50%">
+                <n-input v-model:value="queryUserId" placeholder="请输入学号, 回车查询" clearable
+                  @keydown.enter="queryStudent" />
+              </n-form-item>
+              <profile-editor v-if="!!editedUser" :user="editedUser" :colleges="colleges" :updating-info="updatingInfo"
+                :updating-password="updatingPassword" @update-info="updateUserInfo" @update-password="updatePassword" />
+              <n-text v-else>未找到该用户</n-text>
+
+            </n-space>
+          </n-spin>
         </n-card>
       </n-modal>
     </n-grid-item>

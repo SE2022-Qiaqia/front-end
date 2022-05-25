@@ -50,6 +50,15 @@ const info = ref<UpdateUserRequest>({
   role: props.user.role,
   entranceYear: props.user.entranceYear || 2019
 });
+watch(() => props.user, () => {
+  info.value = {
+    username: props.user.username,
+    realName: props.user.realName,
+    collegeId: props.user.college.id,
+    role: props.user.role,
+    entranceYear: props.user.entranceYear || 2019
+  };
+})
 
 
 const password = ref({
