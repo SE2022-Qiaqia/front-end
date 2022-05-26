@@ -273,7 +273,7 @@ async function updatePassword(password: string) {
       <!-- </n-card> -->
 
       <n-modal v-model:show="isEditingUser">
-        <n-card style="width: 80%" title="选课/撤课" :bordered="false" size="huge" role="dialog" aria-modal="true">
+        <n-card style="width: 80%" title="编辑" :bordered="false" size="huge" role="dialog" aria-modal="true">
           <n-spin :show="isQueryingUser">
             <n-space vertical>
 

@@ -2,7 +2,7 @@
 import { defineProps, ref, watch, watchEffect } from 'vue';
 import { User, College, Role } from '../api/resp';
 import {
-  NGrid, NGridItem, NForm, NFormItem, NInput,
+  NGrid, NGridItem, NForm, NFormItem, NInput, NInputNumber,
   NTabs, NTabPane, FormRules, NButton, SelectOption,
   NSelect
 } from 'naive-ui';
@@ -118,6 +118,12 @@ const formRules: FormRules = {
     message: '请选择学院',
     trigger: 'input',
     pattern: /^.{1,}$/,
+  },
+  entranceYear: {
+    required: true,
+    message: '请输入入学年份',
+    trigger: 'input',
+    pattern: /^\d{4}$/,
   }
 };
 
@@ -152,6 +158,10 @@ function updatePassword() {
             </n-form-item>
             <n-form-item label="角色: ">
               <n-select v-model:value="info.role" placeholder="请选择角色" :options="rolesOptions" />
+            </n-form-item>
+            <n-form-item label="入学年份:" path="entranceYear">
+              <n-input-number v-model:value="info.entranceYear" :min="1980" :max="new Date().getFullYear() + 10"
+                placeholder="请输入入学年份" clearable />
             </n-form-item>
             <div style="display: flex; justify-content: flex-end">
               <n-button round type="primary" ghost @click="updateInfo" :loading="updatingInfo">
