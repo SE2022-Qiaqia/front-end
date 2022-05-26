@@ -118,6 +118,10 @@
             </n-collapse-item>
           </n-collapse>
 
+          <n-space vertical align="center">
+            <n-button style="width: 100%" v-if="courses.length" text @click="queryNextPageCourses">
+              {{ queryModel.page < totalPage ? '加载更多' : '没有了~' }} </n-button>
+          </n-space>
         </n-space>
 
       </n-spin>
@@ -279,15 +283,22 @@ const totalPage = ref(0);
 
 async function queryCourses(resetPage: boolean = false) {
   querying.value = true;
-  if (resetPage = true) {
+  if (resetPage === true) {
     queryModel.value.page = 1;
     courses.value.splice(0);
   }
   const coursesPage = await api.queryCourses(queryModel.value);
-  totalPage.value = coursesPage.total / coursesPage.pageSize;
+  totalPage.value = Math.ceil(coursesPage.total / coursesPage.pageSize);
   courses.value.push(...coursesPage.contents);
 
   querying.value = false;
+}
+
+function queryNextPageCourses() {
+  if (queryModel.value.page < totalPage.value) {
+    queryModel.value.page++;
+    queryCourses(false);
+  }
 }
 
 async function queryStudent() {
