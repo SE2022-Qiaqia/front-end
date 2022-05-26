@@ -292,16 +292,26 @@ const formRules: FormRules = {
       message: '学号已被使用',
       trigger: 'blur',
       validator(rule, value, callback) {
-        return queriedUser.value === undefined || queriedUser.value.id !== value;
+        return queriedUserById.value === undefined || queriedUserById.value.id !== value;
       },
     }
   ],
-  username: {
-    required: true,
-    pattern: /^.{5,20}$/,
-    message: '请输入正确的用户名',
-    trigger: 'input'
-  },
+  username: [
+    {
+      required: true,
+      pattern: /^.{5,20}$/,
+      message: '请输入正确的用户名',
+      trigger: 'input'
+    },
+    {
+      required: true,
+      message: '用户名已被使用',
+      trigger: 'blur',
+      validator(rule, value, callback) {
+        return queriedUserByUsername.value === undefined || queriedUserByUsername.value.username !== value;
+      },
+    }
+  ],
   realName: {
     required: true,
     pattern: /^.{1,15}$/,
@@ -365,15 +375,27 @@ async function confirmAddingUser() {
   }
 }
 
-const queriedUser = ref<User>();
-async function queryUserInAddModal() {
+const queriedUserById = ref<User>();
+async function queryUserInAddModalById() {
   try {
     const res = await api.fetchOtherUserInfo(addingUserInfo.value.id);
     if (res?.id === addingUserInfo.value.id) {
-      queriedUser.value = res;
+      queriedUserById.value = res;
     }
   } catch (e: any) {
-    queriedUser.value = undefined;
+    queriedUserById.value = undefined;
+  }
+}
+
+const queriedUserByUsername = ref<User>();
+async function queryUserInAddModalByUsername() {
+  try {
+    const res = await api.fetchOtherUserInfo(addingUserInfo.value.username);
+    if (res?.username === addingUserInfo.value.username) {
+      queriedUserByUsername.value = res;
+    }
+  } catch (e: any) {
+    queriedUserByUsername.value = undefined;
   }
 }
 </script>
@@ -419,14 +441,22 @@ async function queryUserInAddModal() {
             <n-form-item label="学号:" path="id">
               <n-space align="center">
                 <n-input-number v-model:value="addingUserInfo.id" placeholder="请输入学号" clearable :min="1"
-                  :max="8888888888888888" @update:value="queryUserInAddModal" />
-                <n-text v-if="queriedUser !== undefined" type="error">
-                  {{ queriedUser.realName }}({{ queriedUser.id }} - {{ queriedUser.username }})
+                  :max="8888888888888888" @update:value="queryUserInAddModalById" />
+                <n-text v-if="queriedUserById !== undefined" type="error">
+                  {{ queriedUserById.realName }}({{ queriedUserById.id }} - {{ queriedUserById.username }})
                 </n-text>
               </n-space>
             </n-form-item>
             <n-form-item label="用户名:" path="username">
-              <n-input v-model:value="addingUserInfo.username" placeholder="请输入用户名" clearable />
+              <n-space align="center">
+                <n-input v-model:value="addingUserInfo.username" placeholder="请输入用户名" clearable
+                  @update:value="queryUserInAddModalByUsername" />
+                <n-text v-if="queriedUserByUsername !== undefined" type="error">
+                  {{ queriedUserByUsername.realName }}({{ queriedUserByUsername.id }} - {{
+                      queriedUserByUsername.username
+                  }})
+                </n-text>
+              </n-space>
             </n-form-item>
             <n-form-item label="密码:" path="password">
               <n-input v-model:value="addingUserInfo.password" type="password" placeholder="请输入密码" />
