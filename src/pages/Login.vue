@@ -1,18 +1,21 @@
-<script setup lang="ts">
+<script setup lang="tsx">
 import {
   NSpace, NCard, NForm, NFormItem, NInput, NInputNumber, NTabs, NTabPane,
-  FormRules, NSpin, NButton, NSelect, useMessage, SelectOption, FormInst
+  FormRules, NSpin, NButton, NSelect, useMessage, SelectOption, FormInst,
+  NAlert, NSwitch, NText, NTooltip, useNotification
 } from 'naive-ui';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '../api';
 import { College, User } from '../api/resp';
 import { injectStore } from '../store';
+import { defaultApiSource } from '../store/types';
 
 const store = injectStore();
 const message = useMessage();
 const route = useRoute();
 const router = useRouter();
+const notification = useNotification();
 
 const form = ref({
   id: 2019000000000,
@@ -35,6 +38,51 @@ const collegesOptions = computed<SelectOption[]>(
     label: c.name
   }))
 );
+
+let firstEnterApiSource = true;
+watch(() => tab.value, () => {
+  if (firstEnterApiSource && tab.value === 'source') {
+    firstEnterApiSource = false;
+    notification.warning({
+      title: '换源',
+      content: `对"API源"做出修改将决定系统向何处的服务器请求数据。设置不当会导致您无法正常使用。如果您不知道这意味着什么，建议不要对此作出改动。`,
+      duration: 10000
+    });
+    return;
+  }
+});
+
+const locationOrigin = document.location.origin;
+const apiSource = ref({ ...store.state.apiSource });
+watch(store.state.apiSource, () => apiSource.value = { ...store.state.apiSource });
+const onlyForSession = ref(true);
+const protocolOptions = computed<SelectOption[]>(
+  () => ['http', 'https'].map(p => ({
+    value: p,
+    label: p
+  }))
+);
+const finalBase = computed<string>(() => store.getters['apiSource/baseUrl']);
+function saveApiSource() {
+  store.commit('apiSource/saveApiSource', { apiSource: apiSource.value, forLocal: !onlyForSession.value });
+  notifyNewApiSource(onlyForSession.value);
+}
+
+function resetApiSource() {
+  store.commit('apiSource/saveApiSource', { apiSource: defaultApiSource, forLocal: true });
+  store.commit('apiSource/saveApiSource', { apiSource: defaultApiSource, forLocal: false });
+  notifyNewApiSource(false);
+}
+
+function notifyNewApiSource(forSession: boolean) {
+  notification.create({
+    type: forSession ? 'info' : 'warning',
+    title: '已换源',
+    content: `您的API源已经更改为${finalBase.value}，刷新页面生效。${forSession ? '此源仅在当前会话有效。' : '请注意，该设置全局有效。'}`,
+    duration: 5000,
+    action: () => (<NButton text type="primary" onClick={() => document.location.reload()}>刷新</NButton>)
+  });
+}
 
 onMounted(() => {
   store.dispatch('fetchColleges').then(() => {
@@ -201,6 +249,43 @@ onMounted(async () => {
                 </n-button>
               </div>
             </n-form>
+          </n-tab-pane>
+
+          <n-tab-pane name="source" tab="换源">
+            <n-space vertical align="stretch">
+              <n-space align="center">
+                <n-switch v-model:value="apiSource.sameSource">
+                  <template #checked>同源</template>
+                  <template #unchecked>外源</template>
+                </n-switch>
+                <template v-if="!apiSource.sameSource">
+                  <n-select v-model:value="apiSource.protocol" :options="protocolOptions" placeholder="协议" />
+                  <n-text>://</n-text>
+                  <n-input v-model:value="apiSource.host" placeholder="主机地址" />
+                  <n-text>:</n-text>
+                  <n-input-number v-model:value="apiSource.port" placeholder="端口号" />
+                  <n-text>/</n-text>
+                </template>
+                <template v-else>
+                  <n-text>{{ locationOrigin }}</n-text>
+                </template>
+                <n-input v-model:value="apiSource.base" placeholder="API基路径" />
+                <n-tooltip>
+                  <template #trigger>
+                    <n-switch v-model:value="onlyForSession">
+                      <template #checked>仅对本次会话生效</template>
+                      <template #unchecked>作为常规设置</template>
+                    </n-switch>
+                  </template>
+                  {{ onlyForSession ? '您在其他窗口访问本系统不会采用当前设置，他们不会受到影响。' : '该设置将保存下来，所有窗口都可以会采用。' }}
+                </n-tooltip>
+              </n-space>
+              <n-space justify="end" align="center">
+                <n-text>当前源：{{ finalBase }}</n-text>
+                <n-button type="primary" round ghost @click="saveApiSource">保存</n-button>
+                <n-button round ghost @click="resetApiSource">不能正常工作了？点我重置</n-button>
+              </n-space>
+            </n-space>
           </n-tab-pane>
 
         </n-tabs>

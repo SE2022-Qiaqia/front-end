@@ -3,7 +3,7 @@ import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
 import { api } from '../api';
 import { LoginCredit } from '../api/req';
 import { College, CourseScheduleWithCourseSpecific, Semester, User } from "../api/resp";
-import { FinalState, LoginState, RootState } from "./types";
+import { ApiSourceState, defaultApiSource, FinalState, loadApiSource, LoginState, realBaseUrl, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
 
@@ -18,6 +18,31 @@ const loginStateModule: Module<LoginState, RootState> = {
     }
   }
 };
+
+const apiSourceState: ApiSourceState = loadApiSource();
+const apiSourceStateModule: Module<ApiSourceState, RootState> = {
+  namespaced: true,
+  state: apiSourceState,
+  mutations: {
+    saveApiSource(state, args: { apiSource: ApiSourceState, forLocal: boolean }) {
+      state.protocol = args.apiSource.protocol;
+      state.host = args.apiSource.host;
+      state.port = args.apiSource.port;
+      state.base = args.apiSource.base;
+      state.sameSource = args.apiSource.sameSource;
+      if (args.forLocal) {
+        localStorage.setItem('apiSource', JSON.stringify(args.apiSource));
+      } else {
+        sessionStorage.setItem('apiSource', JSON.stringify(args.apiSource));
+      }
+    }
+  },
+  getters: {
+    baseUrl(state) {
+      return realBaseUrl(state);
+    }
+  }
+}
 
 const token = localStorage.getItem("loginToken") || '';
 api.token = token;
@@ -34,7 +59,8 @@ export const store: Store<FinalState> = createStore<RootState>({
     routerPushReason: ''
   },
   modules: {
-    login: loginStateModule
+    login: loginStateModule,
+    apiSource: apiSourceStateModule
   },
   mutations: {
     saveUserInfo(state, user: User) {

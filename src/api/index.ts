@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific, CourseCommon } from "./resp";
 import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, QueryUserRequest, RegisterInfo, UpdateUserRequest, UpdateCourseCommonRequest, NewCourseRequest } from "./req";
+import { loadApiSource, realBaseUrl } from '../store/types';
 
 export class Api {
 
@@ -162,4 +163,4 @@ export class Api {
 
 }
 
-export const api = new Api('http://localhost:8080/api/v1');
+export const api = new Api(realBaseUrl(loadApiSource()));
