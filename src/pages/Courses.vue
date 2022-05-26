@@ -23,7 +23,17 @@
             <n-form-item label="余量: ">
               <n-checkbox v-model:checked="queryModel.onlyLeftQuota" label="仅看有余量" />
             </n-form-item>
-            <div style="display: flex; justify-content: flex-end">
+            <n-space justify="space-between">
+              <n-space>
+                <n-button round ghost text type="primary" @click="enterNewCourseCommon">
+                  <template #icon>
+                    <n-icon>
+                      <Add24Filled />
+                    </n-icon>
+                  </template>
+                  新增课程
+                </n-button>
+              </n-space>
               <n-space>
                 <n-button round type="primary" @click="queryCourses(true)">
                   查询
@@ -32,7 +42,7 @@
                   重置
                 </n-button>
               </n-space>
-            </div>
+            </n-space>
           </n-form>
 
           <n-collapse>
@@ -48,7 +58,7 @@
                 </n-text>
               </template>
 
-              <template v-if="courseCommon.courseSpecifics.length <= 0">
+              <template v-if="currentUserRole !== Role.Admin && courseCommon.courseSpecifics.length <= 0">
                 <n-empty description="在该筛选条件下没有找到符合的课头哦~">
                 </n-empty>
               </template>
@@ -56,6 +66,7 @@
                 <n-table :bordered="true">
                   <thead>
                     <tr>
+                      <th>课头号</th>
                       <th>课程名</th>
                       <th>授课老师</th>
                       <th>授课地点</th>
@@ -66,6 +77,7 @@
                   </thead>
                   <tbody>
                     <tr v-for="specific in courseCommon.courseSpecifics" key="id">
+                      <td>{{ specific.id }}</td>
                       <td>{{ courseCommon.name }}</td>
                       <td>{{ specific.teacher.realName }}({{ specific.teacher.college.name }})</td>
                       <td>{{ specific.location }}</td>
@@ -82,7 +94,7 @@
                       </td>
                       <td>{{ specific.quota }}/{{ specific.quotaUsed }}/{{ specific.quota - specific.quotaUsed }}</td>
                       <td>
-                        <template v-if="store.state.user?.role == Role.Admin">
+                        <template v-if="currentUserRole == Role.Admin">
                           <n-space>
                             <n-button ghost type="primary" @click="confirmSelectCourse(specific, courseCommon)">
                               强选
@@ -90,9 +102,18 @@
                             <n-button ghost type="error" @click="confirmWithdrawCourse(specific, courseCommon)">
                               强撤
                             </n-button>
+                            <n-divider vertical />
+                            <n-button ghost type="info">
+                              <template #icon>
+                                <n-icon>
+                                  <Edit16Regular />
+                                </n-icon>
+                                <!-- 编辑课程 -->
+                              </template>
+                            </n-button>
                           </n-space>
                         </template>
-                        <template v-if="store.state.user?.role == Role.Student">
+                        <template v-if="currentUserRole == Role.Student">
                           <n-space>
                             <n-button ghost v-if="schedules.findIndex(x => x.id === specific.id) < 0" type="primary"
                               @click="confirmSelectCourse(specific, courseCommon)">
@@ -103,7 +124,7 @@
                             </n-button>
                           </n-space>
                         </template>
-                        <template v-if="store.state.user?.role == Role.Teacher">
+                        <template v-if="currentUserRole == Role.Teacher">
                           <n-space>
                             <n-button ghost v-if="schedules.findIndex(x => x.id === specific.id) < 0" type="primary">
                               查看详情
@@ -111,6 +132,28 @@
                             </n-button>
                           </n-space>
                         </template>
+                      </td>
+                    </tr>
+                    <tr v-if="currentUserRole === Role.Admin">
+                      <td colspan="100">
+                        <n-space justify="center">
+                          <n-button type="primary" round ghost>
+                            <template #icon>
+                              <n-icon>
+                                <Add24Filled />
+                              </n-icon>
+                            </template>
+                            开设课头
+                          </n-button>
+                          <n-button type="info" round ghost @click="enterEditCourseCommon(courseCommon)">
+                            <template #icon>
+                              <n-icon>
+                                <Edit16Regular />
+                              </n-icon>
+                            </template>
+                            编辑课程信息
+                          </n-button>
+                        </n-space>
                       </td>
                     </tr>
                   </tbody>
@@ -128,7 +171,7 @@
 
       </n-spin>
 
-
+      <!-- 对话框 —— 选课/撤课 -->
       <n-modal v-model:show="courseSelecting">
         <n-card style="width: 500px" title="选课/撤课" :bordered="false" size="huge" role="dialog" aria-modal="true">
           <n-spin :show="courseSelectingModel.operating">
@@ -136,7 +179,7 @@
               <n-space>
                 <n-form-item label="学生ID:" label-placement="left">
                   <n-input v-model:value="courseSelectingModel.studentId" placeholder="请输入学号, 回车查询" clearable
-                    :disabled="store.state.user?.role !== Role.Admin" @keydown.enter="queryStudent" />
+                    :disabled="currentUserRole !== Role.Admin" @keydown.enter="queryStudent" />
                 </n-form-item>
                 <n-button v-if="courseSelectingModel.operation === Operation.Select" type="primary"
                   :disabled="courseSelectingModel.student?.role !== Role.Student" @click="selectOrWithdraw">选课
@@ -151,38 +194,60 @@
               <user-brief v-if="courseSelectingModel.student" :user="courseSelectingModel.student" />
               <n-text v-else>未找到该用户</n-text>
 
-              <n-card>
-                <n-thing
-                  :title="`${courseSelectingModel.courseCommon.name} (课程号：${courseSelectingModel.courseCommon.id})`">
-                  <p>
-                    <span>开课学院：</span>
-                    <span>{{ courseSelectingModel.courseCommon.college.name }}</span>
-                    <br />
-                    <span>学分：</span>
-                    <span>{{ courseSelectingModel.courseCommon.credits }}</span>
-                    <br />
-                    <span>学时：</span>
-                    <span>{{ courseSelectingModel.courseCommon.hours }}</span>
-                    <br />
-                    <span>授课老师：</span>
-                    <span>
-                      {{ courseSelectingModel.course?.teacher?.realName }}
-                      ({{ courseSelectingModel.course?.teacher?.college.name }})
-                    </span>
-                    <br />
-                    <span>地点：</span>
-                    <span>{{ courseSelectingModel.course?.location }}</span>
-                    <br />
-                    <span>人数(总额/已选/余量)：</span>
-                    <br />
-                    <span>{{ courseSelectingModel.course?.quota }}/{{ courseSelectingModel.course?.quotaUsed }}/{{
-                        (courseSelectingModel.course?.quota || 0) - (courseSelectingModel.course?.quotaUsed || 0)
-                    }}</span>
-                  </p>
-                </n-thing>
-              </n-card>
+              <course-brief :course-common="courseSelectingModel.courseCommon"
+                :course-specific="courseSelectingModel.course" />
             </n-space>
           </n-spin>
+        </n-card>
+      </n-modal>
+
+      <!-- 对话框 —— 添加/编辑课程 -->
+      <n-modal v-model:show="isEditingCourseCommonModel">
+        <n-card style="width: auto" :title="courseCommonOperation === Operation.New ? '新增课程' : '编辑课程'" :bordered="false"
+          size="huge" role="dialog" aria-modal="true">
+          <n-space>
+
+            <!-- 课程信息表单 -->
+            <n-form :model="courseCommonModel" :rules="courseCommonModelRules" label-placement="left" label-width="auto"
+              require-mark-placement="right-hanging" :disabled="courseCommonModelOperating">
+              <n-form-item label="课程名:" path="name">
+                <n-input v-model:value="courseCommonModel.name" placeholder="课程名" clearable />
+              </n-form-item>
+              <n-form-item label="学院: " path="collegeId">
+                <n-select v-model:value="courseCommonModel.collegeId" placeholder="请选择学院" :options="collegesOptions" />
+              </n-form-item>
+              <n-form-item label="学分:" path="credits">
+                <n-input-number v-model:value="courseCommonModel.credits" :min="0.5" placeholder="请输入学分" clearable>
+                  <template #suffix>
+                    分
+                  </template>
+                </n-input-number>
+              </n-form-item>
+              <n-form-item label="学时:" path="credits">
+                <n-input-number v-model:value="courseCommonModel.hours" :min="10" placeholder="请输入学时" clearable>
+                  <template #suffix>
+                    课时
+                  </template>
+                </n-input-number>
+              </n-form-item>
+              <n-space justify="end">
+                <n-button round ghost :type="courseCommonOperation === Operation.New ? 'primary' : 'info'"
+                  @click="confirmCourseCommonOperation" :loading="courseCommonModelOperating">
+                  <template #icon>
+                    <n-icon>
+                      <Add24Filled v-if="courseCommonOperation === Operation.New" />
+                      <Edit16Regular v-if="courseCommonOperation === Operation.EditCommon" />
+                    </n-icon>
+                  </template>
+                  确认
+                </n-button>
+              </n-space>
+            </n-form>
+
+            <!-- 预览课程信息 -->
+            <course-brief v-if="editingCourseCommon" :course-common="editingCourseCommon" />
+          </n-space>
+
         </n-card>
       </n-modal>
     </n-grid-item>
@@ -192,19 +257,28 @@
 <script setup lang="ts">
 import {
   NSpace, NGrid, NGridItem, NForm, NFormItem,
-  NInput, NSelect, SelectOption, NCheckbox, NButton, NSpin,
+  NInput, NInputNumber, NSelect, SelectOption, NCheckbox, NButton, NSpin,
   NCollapse, NCollapseItem, NEmpty, NTable, NText, NModal,
-  NCard, NThing, NP, useMessage
+  NCard, NIcon, NDivider, FormRules,
+  useMessage, useDialog
 } from 'naive-ui';
 import UserBrief from '../components/UserBrief.vue';
-import { onMounted, ref, watch, watchEffect } from 'vue';
+import CourseBrief from '../components/CourseBrief.vue';
+import { onMounted, ref, watch, watchEffect, computed } from 'vue';
 import { api } from '../api';
-import { College, CourseCommonWithSpecifics, Semester, dayName, Role, CourseSpecific, User, CourseCommon, CourseSpecificWithoutCommon } from '../api/resp';
-import { QueryCoursesRequest } from '../api/req';
+import { Add24Filled, Edit16Regular, Delete24Regular } from '@vicons/fluent';
+import {
+  College, CourseCommonWithSpecifics, Semester, dayName, Role,
+  CourseSpecific, User, CourseCommon, CourseSpecificWithoutCommon
+} from '../api/resp';
+import { NewCourseRequest, QueryCoursesRequest } from '../api/req';
 import { injectStore } from '../store';
 
 const store = injectStore();
 const message = useMessage();
+const dialog = useDialog();
+
+const currentUserRole = computed(() => store.state.user?.role);
 
 const queryModel = ref<QueryCoursesRequest>({
   name: '',
@@ -244,7 +318,7 @@ watchEffect(() => {
 
 const courseSelecting = ref(false);
 enum Operation {
-  Select = 1, Withdraw, Open
+  Select = 1, Withdraw, Open, EditSpecific, New, EditCommon
 };
 const courseSelectingModel = ref<{
   studentId?: string;
@@ -254,7 +328,7 @@ const courseSelectingModel = ref<{
   operating: boolean;
   operation?: Operation;
 }>({
-  studentId: store.state.user?.role === Role.Admin ? '' : (store.state.user?.id + ''),
+  studentId: currentUserRole.value === Role.Admin ? '' : (store.state.user?.id + ''),
   student: store.state.user,
   operating: false,
   operation: Operation.Select,
@@ -353,5 +427,87 @@ function resetQuery() {
     page: 1,
     size: 10
   };
+}
+
+
+const isEditingCourseCommonModel = ref(false);
+const courseCommonOperation = ref(Operation.EditCommon);
+const courseCommonModelOperating = ref(false);
+const editingCourseCommon = ref<CourseCommon>();
+const courseCommonModel = ref<NewCourseRequest>({
+  name: '',
+  collegeId: 1,
+  credits: 2,
+  hours: 48,
+});
+const courseCommonModelRules: FormRules = {
+  name: {
+    required: true,
+    pattern: /^.{2,20}$/,
+    message: '请输入正确的课程名',
+    trigger: 'input'
+  },
+  collegeId: {
+    required: true,
+    message: '请选择学院',
+    trigger: 'input',
+    pattern: /^.{1,}$/,
+  },
+  // 学分、学时总是会被 n-input-number 自动修正为有效的值，所以不写验证了
+};
+function enterEditCourseCommon(courseCommon: CourseCommon) {
+  isEditingCourseCommonModel.value = true;
+  courseCommonOperation.value = Operation.EditCommon;
+
+  editingCourseCommon.value = courseCommon;
+  courseCommonModel.value = {
+    name: courseCommon.name,
+    collegeId: courseCommon.college.id,
+    credits: courseCommon.credits,
+    hours: courseCommon.hours,
+  };
+}
+function enterNewCourseCommon() {
+  isEditingCourseCommonModel.value = true;
+  courseCommonOperation.value = Operation.New;
+
+  editingCourseCommon.value = undefined;
+  courseCommonModel.value = {
+    name: '',
+    collegeId: colleges.value?.length ? 1 : 0,
+    credits: 3,
+    hours: 40,
+  };
+}
+async function confirmCourseCommonOperation() {
+  courseCommonModelOperating.value = true;
+  if (courseCommonOperation.value === Operation.New) {
+    console.log(editingCourseCommon.value)
+    if (!editingCourseCommon.value || (await new Promise<boolean>((resolve, reject) => {
+      dialog.warning({
+        title: '警告',
+        content: '您可能已经新建过该课程了，还要继续操作吗？',
+        positiveText: '确认再次新建',
+        negativeText: '取消',
+        onPositiveClick: () => resolve(true),
+        onNegativeClick: () => resolve(false),
+      });
+    }))) {
+      try {
+        editingCourseCommon.value = await api.newCourseCommon(courseCommonModel.value);
+        message.success('新建课程成功！(查询列表可能需要刷新哦~)');
+      } catch (error) {
+        message.error('添加失败: ' + (error as Error).message);
+      }
+    }
+  } else if (courseCommonOperation.value === Operation.EditCommon) {
+    try {
+      editingCourseCommon.value = await api.updateCourseCommon(editingCourseCommon.value!.id!, courseCommonModel.value);
+      message.success('修改成功！(查询列表可能需要刷新哦~)');
+    } catch (error) {
+      message.error('修改失败: ' + (error as Error).message);
+    }
+  }
+  courseCommonModelOperating.value = false;
 }
 </script>

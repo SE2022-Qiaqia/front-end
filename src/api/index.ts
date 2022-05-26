@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
-import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific } from "./resp";
-import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, QueryUserRequest, RegisterInfo, UpdateUserRequest } from "./req";
+import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific, CourseCommon } from "./resp";
+import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, QueryUserRequest, RegisterInfo, UpdateUserRequest, UpdateCourseCommonRequest, NewCourseRequest } from "./req";
 
 export class Api {
 
@@ -131,6 +131,16 @@ export class Api {
 
   public async deleteUser(id: number): Promise<boolean> {
     const response = await this._axios.delete<ApiResponse<boolean>>(`/user/${id}`);
+    return response.data.data!;
+  }
+
+  public async updateCourseCommon(id: number, data: UpdateCourseCommonRequest): Promise<CourseCommon> {
+    const response = await this._axios.put<ApiResponse<CourseCommon>>(`/course/${id}`, data);
+    return response.data.data!;
+  }
+
+  public async newCourseCommon(data: NewCourseRequest): Promise<CourseCommon> {
+    const response = await this._axios.post<ApiResponse<CourseCommon>>(`/course`, data);
     return response.data.data!;
   }
 

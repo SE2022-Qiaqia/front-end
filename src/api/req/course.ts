@@ -32,12 +32,13 @@ export interface OpenCourseRequest {
   courseSchedules: (CourseSchedule | undefined)[];
 }
 
-export interface UpdateCourseCommonRequest {
-  name: string;
-  collegeId: number;
-  credits: number;
-  hours: number;
-}
+// export interface UpdateCourseCommonRequest {
+//   name: string;
+//   collegeId: number;
+//   credits: number;
+//   hours: number;
+// }
+export type UpdateCourseCommonRequest = NewCourseRequest;
 
 export interface UpdateCourseSpecificRequest {
   teacherId: number;
