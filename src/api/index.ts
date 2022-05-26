@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific } from "./resp";
-import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, RegisterInfo, UpdateUserRequest } from "./req";
+import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, QueryUserRequest, RegisterInfo, UpdateUserRequest } from "./req";
 
 export class Api {
 
@@ -124,7 +124,7 @@ export class Api {
     return response.data.data!;
   }
 
-  public async fetchUserList(data: Page): Promise<PageData<User>> {
+  public async fetchUserList(data: QueryUserRequest): Promise<PageData<User>> {
     const response = await this._axios.post<ApiPageResponse<User>>('/user/list', data);
     return response.data.data!;
   }

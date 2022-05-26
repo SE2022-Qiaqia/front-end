@@ -1,5 +1,16 @@
+import { Page } from ".";
 import { Role } from "../resp";
 
+export interface QueryUserRequest {
+  page: Page;
+  id: number;
+  username: string;
+  realName: string;
+  roles: Role[];
+  collegesId: number[];
+  entranceYearFrom: number;
+  entranceYearTo: number;
+}
 export interface NewUserRequest {
   id: number;
   username: string;

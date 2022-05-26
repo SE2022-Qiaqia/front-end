@@ -2,16 +2,16 @@
 import {
   NGrid, NGridItem, NSpace, NCard, NSpin, NButton,
   NTag, NTime, NText, NForm, NFormItem, NInput, NInputNumber,
-  NSelect, NIcon, NDataTable, NModal,
+  NSelect, NIcon, NDataTable, NModal, NCollapse, NCollapseItem,
   useMessage, DataTableColumns, useDialog, FormRules, SelectOption, FormInst
 } from 'naive-ui';
 import ProfileEditor from '../components/ProfileEditor.vue';
-import { Add24Filled, Edit16Regular, Delete24Regular } from '@vicons/fluent';
+import { Add24Filled, Edit16Regular, Delete24Regular, ShareScreenPersonOverlayInside24Regular, ArrowClockwise28Regular } from '@vicons/fluent';
 import { onMounted, reactive, ref, watch } from 'vue';
 import { injectStore } from '../store';
 import { College, Role, User } from '../api/resp';
 import { api } from '../api';
-import { NewUserRequest, UpdateUserRequest } from '../api/req';
+import { NewUserRequest, UpdateUserRequest, QueryUserRequest } from '../api/req';
 
 const store = injectStore();
 const message = useMessage();
@@ -34,6 +34,11 @@ const pagination = reactive({
     pagination.pageSize = pageSize
     pagination.page = 1
   },
+
+  prefix({ itemCount }: any) {
+    return `共 ${itemCount} 条`
+  },
+
 });
 
 const users = ref<User[]>([]);
@@ -119,10 +124,29 @@ const columns = ref<DataTableColumns>([
     }
   },
 ]);
+const initQueryCondition = {
+  id: 0,
+  username: '',
+  realName: '',
+  roles: [],
+  collegesId: [],
+  entranceYearFrom: 0,
+  entranceYearTo: 0,
+
+  // 由 pagination 确定
+  page: {
+    page: 0,
+    size: 0
+  }
+};
+const queryCondition = ref<QueryUserRequest>({ ...initQueryCondition });
 
 async function updateUsers(page: number, size: number) {
   loading.value = true;
-  api.fetchUserList({ page, size })
+  api.fetchUserList({
+    ...queryCondition.value,
+    page: { page, size }
+  })
     .then(data => {
       users.value = data.contents;
       pagination.page = data.pageNo;
@@ -142,6 +166,11 @@ async function handlePageChange(page: number) {
 
 async function handlePageSizeChange(size: number) {
   updateUsers(pagination.page, size);
+}
+
+function handleEntranceYearFromChange(v: number | null) {
+  if (v)
+    queryCondition.value.entranceYearTo = v > queryCondition.value.entranceYearTo ? v : queryCondition.value.entranceYearTo;
 }
 
 function deleteUser(user: User) {
@@ -425,7 +454,55 @@ async function queryUserInAddModalByUsername() {
               编辑
             </n-button>
           </n-space>
+          <n-space>
+            <n-button round ghost @click="() => updateUsers(pagination.page, pagination.pageSize)" :loading="loading">
+              <template #icon>
+                <n-icon>
+                  <ArrowClockwise28Regular />
+                </n-icon>
+              </template>
+            </n-button>
+          </n-space>
         </n-space>
+
+        <n-collapse style="margin: 15px 0">
+          <n-collapse-item title="筛选">
+            <n-space vertical align="stretch">
+              <n-input-number v-model:value="queryCondition.id" :show-button="false" placeholder="学号" clearable>
+                <template #prefix>
+                  <n-icon>
+                    <ShareScreenPersonOverlayInside24Regular />
+                  </n-icon>
+                </template>
+              </n-input-number>
+              <n-input v-model:value="queryCondition.username" placeholder="用户名" clearable />
+              <n-input v-model:value="queryCondition.realName" placeholder="姓名" clearable />
+              <n-select v-model:value="queryCondition.roles" :options="rolesOptions" placeholder="角色" multiple
+                clearable />
+              <n-select v-model:value="queryCondition.collegesId" :options="collegesOptions" placeholder="学院" multiple
+                clearable />
+              <n-space align="center">
+                <n-input-number v-model:value="queryCondition.entranceYearFrom" :max="9999" :show-button="false"
+                  @update:value="handleEntranceYearFromChange" placeholder="入学年份">
+                  <template #suffix>
+                    年
+                  </template>
+                </n-input-number>
+                <n-text>到</n-text>
+                <n-input-number v-model:value="queryCondition.entranceYearTo" :min="queryCondition.entranceYearFrom"
+                  :max="9999" :show-button="false" placeholder="入学年份">
+                  <template #suffix>
+                    年
+                  </template>
+                </n-input-number>
+              </n-space>
+              <n-space justify="end">
+                <n-button type="primary" @click="() => updateUsers(1, pagination.pageSize)">查询</n-button>
+                <n-button @click="() => queryCondition = { ...initQueryCondition }">重置</n-button>
+              </n-space>
+            </n-space>
+          </n-collapse-item>
+        </n-collapse>
 
         <n-data-table remote :columns="columns" :data="users" :pagination="pagination" :loading="loading"
           @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
