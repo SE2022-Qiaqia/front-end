@@ -3,11 +3,12 @@ import { NGrid, NGridItem } from 'naive-ui';
 import UserBrief from '../components/UserBrief.vue';
 import CourseSchedule from '../components/CourseSchedule.vue';
 import { injectStore } from '../store';
+import { computed } from 'vue';
 
 const store = injectStore();
 
-const student = store.state.user!;
-const schedules = store.state.schedules;
+const student = computed(() => store.state.user!);
+const schedules = computed(() => store.state.schedules);
 </script>
 
 <template>
