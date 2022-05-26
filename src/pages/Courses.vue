@@ -60,6 +60,7 @@
                       <th>授课老师</th>
                       <th>授课地点</th>
                       <th>授课时间</th>
+                      <th>人数(总额/已选/余量)</th>
                       <th>操作</th>
                     </tr>
                   </thead>
@@ -79,6 +80,7 @@
                           </template>
                         </p>
                       </td>
+                      <td>{{ specific.quota }}/{{ specific.quotaUsed }}/{{ specific.quota - specific.quotaUsed }}</td>
                       <td>
                         <template v-if="store.state.user?.role == Role.Admin">
                           <n-space>
@@ -170,6 +172,12 @@
                     <br />
                     <span>地点：</span>
                     <span>{{ courseSelectingModel.course?.location }}</span>
+                    <br />
+                    <span>人数(总额/已选/余量)：</span>
+                    <br />
+                    <span>{{ courseSelectingModel.course?.quota }}/{{ courseSelectingModel.course?.quotaUsed }}/{{
+                        (courseSelectingModel.course?.quota || 0) - (courseSelectingModel.course?.quotaUsed || 0)
+                    }}</span>
                   </p>
                 </n-thing>
               </n-card>
