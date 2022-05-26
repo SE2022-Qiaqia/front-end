@@ -110,7 +110,7 @@ export const store: Store<FinalState> = createStore<RootState>({
     async fetchSchedules({ commit, state }) {
       const schedules = await api.fetchSchedules({
         userId: state.user?.id || 0,
-        semesterIds: []
+        semesterIds: state.currentSemester?.id ? [state.currentSemester.id] : []
       });
       commit("saveSchedules", schedules);
     },
