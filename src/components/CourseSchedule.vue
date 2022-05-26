@@ -4,7 +4,7 @@ import {
   NSpace, NSwitch, NPagination, NCollapse, NCollapseItem, NTable, NEmpty,
   NCard, DataTableColumn, NThing, NDataTable, DataTableColumns, NP, NH6, NText, NPopover
 } from 'naive-ui';
-import { ref, watchEffect } from 'vue';
+import { ref } from 'vue';
 import { CourseScheduleWithCourseSpecific, dayName, DayOfWeek, Role } from '../api/resp';
 import { injectStore } from '../store';
 
@@ -36,8 +36,6 @@ function _emptyDaySchedules(): DaySchedules {
 }
 
 const noSchedulesDescription = computed(() => store.state.user?.role === Role.Admin ? '您为管理员，不需要上课' : '您没有课要上哦');
-const finalSchedulesForList = ref<DaySchedules>(_emptyDaySchedules());
-const finalSchedulesForTable = ref<HourSchedules>([]);
 const hoursKey = ref<number[]>([]);
 const daysKey: DayOfWeek[] = [DayOfWeek.Sunday, DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday];
 
@@ -90,34 +88,32 @@ columns.unshift({
   },
 });
 
-watchEffect(() => {
-  const filtered = props.schedules
-    .filter(x => (allWeek.value || (x.startWeekId <= week.value && x.endWeekId >= week.value)) // 过滤周次
-    )
-    .sort((a, b) => {
-      if (a.startWeekId !== b.startWeekId) {
-        return a.startWeekId - b.startWeekId;
-      }
-      if (a.dayOfWeek !== b.dayOfWeek) {
-        return a.dayOfWeek - b.dayOfWeek;
-      }
-      return a.startHoursId - b.startHoursId;
-    });
+const filtered = computed(() => props.schedules
+  .filter(x => (allWeek.value || (x.startWeekId <= week.value && x.endWeekId >= week.value)) // 过滤周次
+  )
+  .sort((a, b) => {
+    if (a.startWeekId !== b.startWeekId) {
+      return a.startWeekId - b.startWeekId;
+    }
+    if (a.dayOfWeek !== b.dayOfWeek) {
+      return a.dayOfWeek - b.dayOfWeek;
+    }
+    return a.startHoursId - b.startHoursId;
+  }));
 
-  // 预处理列表模式的数据
-  finalSchedulesForList.value
-    = filtered
-      .reduce((pre: DaySchedules, cur) => {
-        pre[cur.dayOfWeek] = pre[cur.dayOfWeek] || [];
-        pre[cur.dayOfWeek].push(cur);
-        return pre;
-      }, _emptyDaySchedules());
-
-  // 预处理表格模式的数据(默认从1~13节的课都显示)
+// 预处理列表模式的数据
+const finalSchedulesForList = computed<DaySchedules>(() =>
+  filtered.value.reduce((pre: DaySchedules, cur) => {
+    pre[cur.dayOfWeek] = pre[cur.dayOfWeek] || [];
+    pre[cur.dayOfWeek].push(cur);
+    return pre;
+  }, _emptyDaySchedules()));
+// 预处理表格模式的数据(默认从1~13节的课都显示)
+const finalSchedulesForTable = computed<HourSchedules>(() => {
   let max = 13;
   let maxActual = 0;
   let min = 1;
-  let tableSchedules = filtered.reduce((pre: HourSchedules, cur) => {
+  const tableSchedules = filtered.value.reduce((pre: HourSchedules, cur) => {
     pre[cur.startHoursId] = pre[cur.startHoursId] || {};
     pre[cur.startHoursId][cur.dayOfWeek] = pre[cur.startHoursId][cur.dayOfWeek] || [];
     pre[cur.startHoursId][cur.dayOfWeek].push(cur);
@@ -132,9 +128,10 @@ watchEffect(() => {
   max = noRedundantHours.value ? maxActual : max;
   tableSchedules.splice(max + 1); // 去除无效的课时
   tableSchedules.splice(0, 1); // 去除第0节课（是之前为方便处理引入的）
-  finalSchedulesForTable.value
-    = tableSchedules;
+
   hoursKey.value = Array.from({ length: max - min + 1 }, (_, i) => i + min);
+
+  return tableSchedules;
 });
 
 </script>

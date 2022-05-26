@@ -1,9 +1,8 @@
 <script setup lang="tsx">
 import {
-  NLayout, NLayoutHeader, NLayoutContent, NButton, NA,
-  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar, NIcon
+  NLayout, NLayoutHeader, NLayoutContent, NButton, NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar, NIcon
 } from 'naive-ui';
-import { shallowRef, ref, watchEffect } from 'vue';
+import { watchEffect, computed } from 'vue';
 import { Role } from './api/resp';
 import { Table28Regular, AnimalRabbit28Regular, Power28Regular, ChatHelp20Regular, Person24Regular } from '@vicons/fluent';
 import { useRouter } from 'vue-router';
@@ -14,17 +13,13 @@ const store = injectStore();
 const message = useMessage();
 const router = useRouter();
 
-const user = ref(store.state.user);
+const user = computed(() => store.state.user);
 
 const headerContentHeight = '70px';
 const headerPadding = '20px';
 const headerHeight = `calc(${headerContentHeight} + ${headerPadding} * 2)`;
 
-const navMenuOptions = shallowRef<(MenuOption | MenuGroupOption)[]>([]);
-
-watchEffect(() => {
-  user.value = store.state.user;
-
+const navMenuOptions = computed<(MenuOption | MenuGroupOption)[]>(() => {
   const menu: (MenuOption | MenuGroupOption)[] = [];
   menu.push({
     key: "home",
@@ -80,8 +75,7 @@ watchEffect(() => {
       icon: () => (<NIcon><ChatHelp20Regular /></NIcon>),
     }
   );
-  navMenuOptions.value = menu;
-  
+  return menu;
 });
 
 function logout() {

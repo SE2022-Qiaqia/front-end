@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { NThing, NAvatar, NCard } from 'naive-ui';
+import { NThing, NCard } from 'naive-ui';
 import { User } from '../api/resp';
-import logo from '../assets/logo.jpg';
 import { Role } from '../api/resp';
 
 const roles: { [key: number]: string } = {

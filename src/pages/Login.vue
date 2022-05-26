@@ -3,7 +3,7 @@ import {
   NSpace, NCard, NForm, NFormItem, NInput, NInputNumber, NTabs, NTabPane,
   FormRules, NSpin, NButton, NSelect, useMessage, SelectOption, FormInst
 } from 'naive-ui';
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '../api';
 import { College, User } from '../api/resp';
@@ -29,14 +29,12 @@ const canRegister = ref(true);
 const tab = ref('login');
 
 const colleges = ref<College[]>([]);
-const collegesOptions = ref<SelectOption[]>();
-watch(() => colleges.value, () => {
-  collegesOptions.value = colleges.value.map(c => ({
+const collegesOptions = computed<SelectOption[]>(
+  () => colleges.value.map(c => ({
     value: c.id,
     label: c.name
-  }));
-});
-
+  }))
+);
 
 onMounted(() => {
   store.dispatch('fetchColleges').then(() => {
@@ -197,7 +195,8 @@ onMounted(async () => {
                 <n-select v-model:value="form.collegeId" placeholder="请选择学院" :options="collegesOptions" />
               </n-form-item>
               <div style="display: flex; justify-content: flex-end">
-                <n-button round :type="canRegister ? 'primary' : 'error'" ghost @click="register" :disabled="!canRegister">
+                <n-button round :type="canRegister ? 'primary' : 'error'" ghost @click="register"
+                  :disabled="!canRegister">
                   {{ canRegister ? '注册' : '未开放注册' }}
                 </n-button>
               </div>

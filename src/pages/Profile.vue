@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch, watchEffect } from 'vue';
-import {
-  NGrid, NGridItem, NForm, NFormItem, NInput,
-  NTabs, NTabPane, FormRules, NButton, SelectOption,
-  NSelect,
-  useMessage
-} from 'naive-ui';
+import { computed, onMounted, ref } from 'vue';
+import { NGrid, NGridItem, useMessage } from 'naive-ui';
 import ProfileEditor from '../components/ProfileEditor.vue';
 import { injectStore } from '../store';
 import { College, Role, User } from '../api/resp';
@@ -17,8 +12,7 @@ const store = injectStore();
 const message = useMessage();
 const router = useRouter();
 
-const user = ref<User>(store.state.user!);
-watchEffect(() => user.value = store.state.user!);
+const user = computed<User>(() => store.state.user!);
 
 const colleges = ref<College[]>([]);
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { User, College, Role } from '../api/resp';
 import {
   NGrid, NGridItem, NForm, NFormItem, NInput, NInputNumber,
@@ -20,13 +20,11 @@ const emits = defineEmits<{
   (e: 'updatePassword', password: string): void
 }>();
 
-const collegesOptions = ref<SelectOption[]>();
-watchEffect(() => {
-  collegesOptions.value = props.colleges.map(c => ({
+const collegesOptions = computed<SelectOption[]>(
+  () => props.colleges.map(c => ({
     value: c.id,
     label: c.name
-  }));
-});
+  })));
 
 const rolesOptions: SelectOption[] = [
   {

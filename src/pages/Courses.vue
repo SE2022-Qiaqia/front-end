@@ -25,7 +25,8 @@
             </n-form-item>
             <n-space justify="space-between">
               <n-space>
-                <n-button v-if="currentUserRole === Role.Admin" round ghost text type="primary" @click="enterNewCourseCommon">
+                <n-button v-if="currentUserRole === Role.Admin" round ghost text type="primary"
+                  @click="enterNewCourseCommon">
                   <template #icon>
                     <n-icon>
                       <Add24Filled />
@@ -265,12 +266,12 @@ import {
 } from 'naive-ui';
 import UserBrief from '../components/UserBrief.vue';
 import CourseBrief from '../components/CourseBrief.vue';
-import { onMounted, ref, watch, watchEffect, computed } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { api } from '../api';
-import { Add24Filled, Edit16Regular, Delete24Regular } from '@vicons/fluent';
+import { Add24Filled, Edit16Regular } from '@vicons/fluent';
 import {
   College, CourseCommonWithSpecifics, Semester, dayName, Role,
-  CourseSpecific, User, CourseCommon, CourseSpecificWithoutCommon
+  User, CourseCommon, CourseSpecificWithoutCommon
 } from '../api/resp';
 import { NewCourseRequest, QueryCoursesRequest } from '../api/req';
 import { injectStore } from '../store';
@@ -294,28 +295,19 @@ const queryModel = ref<QueryCoursesRequest>({
 const querying = ref(false);
 
 const colleges = ref<College[]>([]);
-const collegesOptions = ref<SelectOption[]>();
-watch(() => colleges.value, () => {
-  collegesOptions.value = colleges.value.map(c => ({
-    value: c.id,
-    label: c.name
-  }));
-});
+const collegesOptions = computed<SelectOption[]>(() => colleges.value.map(c => ({
+  value: c.id,
+  label: c.name
+})));
 
 const semesters = ref<Semester[]>([]);
 const currentSemesterId = ref(0);
-const semestersOptions = ref<SelectOption[]>();
-watchEffect(() => {
-  semestersOptions.value = semesters.value.map(s => ({
-    value: s.id,
-    label: `${s.year}级-第${s.term}学期${s.id === currentSemesterId.value ? '(本学期)' : ''}`
-  }));
-});
+const semestersOptions = computed(() => semesters.value.map(s => ({
+  value: s.id,
+  label: `${s.year}级-第${s.term}学期${s.id === currentSemesterId.value ? '(本学期)' : ''}`
+})));
 
-const schedules = ref(store.state.schedules);
-watchEffect(() => {
-  schedules.value = store.state.schedules;
-});
+const schedules = computed(() => store.state.schedules);
 
 const courseSelecting = ref(false);
 enum Operation {

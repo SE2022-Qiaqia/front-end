@@ -7,7 +7,7 @@ import {
 } from 'naive-ui';
 import ProfileEditor from '../components/ProfileEditor.vue';
 import { Add24Filled, Edit16Regular, Delete24Regular, ShareScreenPersonOverlayInside24Regular, ArrowClockwise28Regular } from '@vicons/fluent';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { injectStore } from '../store';
 import { College, Role, User } from '../api/resp';
 import { api } from '../api';
@@ -192,13 +192,12 @@ function deleteUser(user: User) {
 }
 
 const colleges = ref<College[]>([]);
-const collegesOptions = ref<SelectOption[]>();
-watch(() => colleges.value, () => {
-  collegesOptions.value = colleges.value.map(c => ({
+const collegesOptions = computed<SelectOption[]>(
+  () => colleges.value.map(c => ({
     value: c.id,
     label: c.name
-  }));
-});
+  }))
+);
 
 onMounted(async () => {
   updateUsers(pagination.page, pagination.pageSize);
