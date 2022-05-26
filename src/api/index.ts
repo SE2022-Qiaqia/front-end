@@ -81,6 +81,11 @@ export class Api {
     return response.data.data || [];
   }
 
+  public async newCollege(name: string = ""): Promise<College> {
+    const response = await this._axios.post<ApiResponse<College>>('/college/new', { name });
+    return response.data.data!;
+  }
+
   public async fetchSemesters(): Promise<Semester[]> {
     const response = await this._axios.get<ApiResponse<Semester[]>>('/semester/');
     return response.data.data || [];
@@ -88,6 +93,11 @@ export class Api {
 
   public async fetchCurrentSemester(): Promise<Semester> {
     const response = await this._axios.get<ApiResponse<Semester>>('/semester/curr');
+    return response.data.data!;
+  }
+
+  public async setCurrentSemester(id: number): Promise<Semester> {
+    const response = await this._axios.post<ApiResponse<Semester>>('/semester/curr', { id: id });
     return response.data.data!;
   }
 
@@ -121,6 +131,11 @@ export class Api {
 
   public async canRegister(): Promise<boolean> {
     const response = await this._axios.get<ApiResponse<boolean>>('/register/enable');
+    return response.data.data!;
+  }
+
+  public async enableRegister(enable: boolean): Promise<boolean> {
+    const response = await this._axios.post<ApiResponse<boolean>>('/register/enable', { enable: enable });
     return response.data.data!;
   }
 

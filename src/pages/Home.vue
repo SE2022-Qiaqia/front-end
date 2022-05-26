@@ -2,7 +2,9 @@
 import { NGrid, NGridItem } from 'naive-ui';
 import UserBrief from '../components/UserBrief.vue';
 import CourseSchedule from '../components/CourseSchedule.vue';
+import Settings from '../components/Settings.vue';
 import { injectStore } from '../store';
+import { Role } from '../api/resp';
 import { computed } from 'vue';
 
 const store = injectStore();
@@ -14,7 +16,8 @@ const schedules = computed(() => store.state.schedules);
 <template>
   <n-grid :cols="12" :x-gap="12">
     <n-grid-item :offset="1" :span="8">
-      <course-schedule :schedules="schedules" />
+      <course-schedule v-if="student.role !== Role.Admin" :schedules="schedules" />
+      <settings />
     </n-grid-item>
     <n-grid-item :span="2">
       <user-brief :user="student" />
