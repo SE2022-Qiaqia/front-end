@@ -21,6 +21,9 @@ const props = defineProps<{ user: User }>();
       </template> -->
       <template #default>
         <p>
+          <span>用户名：</span>
+          <span>{{ user.username }}</span>
+          <br />
           <span>学号：</span>
           <span>{{ user.id }}</span>
           <br />
