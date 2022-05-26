@@ -134,18 +134,15 @@ const initQueryCondition = {
   entranceYearTo: 0,
 
   // 由 pagination 确定
-  page: {
-    page: 0,
-    size: 0
-  }
+  page: 0,
+  size: 0
 };
 const queryCondition = ref<QueryUserRequest>({ ...initQueryCondition });
 
 async function updateUsers(page: number, size: number) {
   loading.value = true;
   api.fetchUserList({
-    ...queryCondition.value,
-    page: { page, size }
+    ...queryCondition.value, page, size
   })
     .then(data => {
       users.value = data.contents;

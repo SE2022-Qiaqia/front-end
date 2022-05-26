@@ -1,8 +1,7 @@
 import { Page } from ".";
 import { Role } from "../resp";
 
-export interface QueryUserRequest {
-  page: Page;
+export interface QueryUserRequest extends Page {
   id: number;
   username: string;
   realName: string;
