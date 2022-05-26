@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref, watch, watchEffect } from 'vue';
+import { ref, watch, watchEffect } from 'vue';
 import { User, College, Role } from '../api/resp';
 import {
   NGrid, NGridItem, NForm, NFormItem, NInput, NInputNumber,

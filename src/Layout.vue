@@ -1,9 +1,11 @@
 <script setup lang="tsx">
 import {
-  NLayout, NLayoutHeader, NLayoutContent, NButton,
-  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar
+  NLayout, NLayoutHeader, NLayoutContent, NButton, NA,
+  NAvatar, NSpace, NText, NMenu, MenuGroupOption, MenuOption, useMessage, NScrollbar, NIcon
 } from 'naive-ui';
-import { onMounted, onUpdated, ref, watchEffect } from 'vue';
+import { shallowRef, ref, watchEffect } from 'vue';
+import { Role } from './api/resp';
+import { Table28Regular, AnimalRabbit28Regular, Power28Regular, ChatHelp20Regular, Person24Regular } from '@vicons/fluent';
 import { useRouter } from 'vue-router';
 import logo from './assets/logo.jpg';
 import { injectStore } from './store';
@@ -13,16 +15,19 @@ const message = useMessage();
 const router = useRouter();
 
 const user = ref(store.state.user);
-watchEffect(() => {
-  user.value = store.state.user;
-});
 
 const headerContentHeight = '70px';
 const headerPadding = '20px';
 const headerHeight = `calc(${headerContentHeight} + ${headerPadding} * 2)`;
 
-const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
-  {
+const navMenuOptions = shallowRef<(MenuOption | MenuGroupOption)[]>([]);
+
+watchEffect(() => {
+  user.value = store.state.user;
+
+  const menu: (MenuOption | MenuGroupOption)[] = [];
+  menu.push({
+    key: "home",
     label: () => (
       <router-link to="/">
         <NSpace
@@ -36,17 +41,47 @@ const navMenuOptions: (MenuOption | MenuGroupOption)[] = [
           <NText type="info" strong>QiaQia 选课系统</NText>
         </NSpace>
       </router-link>),
-    key: "home"
-  },
-  {
-    label: () => (<a href="https://github.com/SE2022-Qiaqia">Github</a>),
-    key: "github"
-  },
-  {
-    label: () => (<a href="https://se2022-qiaqia.github.io/docs/">Docs</a>),
-    key: "docs"
-  },
-];
+  });
+  if (user.value?.id) {
+    menu.push(
+      {
+        key: 'profile',
+        label: () => (<router-link to={'profile'}>个人信息</router-link>),
+        icon: () => (<NIcon><Person24Regular /></NIcon>),
+        disabled: !user.value?.id,
+      },
+      {
+        key: 'courses',
+        label: () => (
+          <router-link to={'courses'}>课程管理</router-link>),
+        icon: () => (<NIcon><Table28Regular /></NIcon>),
+        disabled: !user.value?.id,
+      });
+    if (user.value.role === Role.Admin) {
+      menu.push(
+        {
+          key: 'users',
+          label: () => (<router-link to={'users'}>用户管理</router-link>),
+          icon: () => (<NIcon><AnimalRabbit28Regular /></NIcon>),
+          disabled: user.value?.role !== Role.Admin,
+        });
+    }
+  }
+  menu.push(
+    {
+      key: "github",
+      label: () => (<a href="https://github.com/SE2022-Qiaqia">Github</a>),
+      icon: () => (<NIcon><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2c2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2a4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6c-.6.6-.6 1.2-.5 2V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></NIcon>),
+    },
+    {
+      key: "docs",
+      label: () => (<a href="https://se2022-qiaqia.github.io/docs/">Docs</a>),
+      icon: () => (<NIcon><ChatHelp20Regular /></NIcon>),
+    }
+  );
+  navMenuOptions.value = menu;
+  
+});
 
 function logout() {
   store.dispatch('logout').then(() => {
@@ -74,7 +109,14 @@ watchEffect(() => {
     <n-layout-header :style="{ position: 'absolute', padding: headerPadding }" bordered>
       <n-space align="center" justify="space-between">
         <n-menu mode="horizontal" :options="navMenuOptions" />
-        <n-button v-if="user?.id" text tag="a" @click="logout">退出登录</n-button>
+        <n-button v-if="user?.id" text tag="a" @click="logout">
+          <template #icon>
+            <n-icon>
+              <Power28Regular />
+            </n-icon>
+          </template>
+          退出登录
+        </n-button>
       </n-space>
     </n-layout-header>
     <n-layout-content
