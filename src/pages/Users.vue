@@ -1,8 +1,9 @@
 <script setup lang="tsx">
 import {
   NGrid, NGridItem, NSpace, NCard, NSpin, NButton,
-  NTag, NTime, NText, NFormItem, NInput, NIcon, NDataTable, NModal,
-  useMessage, DataTableColumns, useDialog
+  NTag, NTime, NText, NForm, NFormItem, NInput, NInputNumber,
+  NSelect, NIcon, NDataTable, NModal,
+  useMessage, DataTableColumns, useDialog, FormRules, SelectOption, FormInst
 } from 'naive-ui';
 import ProfileEditor from '../components/ProfileEditor.vue';
 import { Add24Filled, Edit16Regular, Delete24Regular } from '@vicons/fluent';
@@ -10,7 +11,7 @@ import { onMounted, reactive, ref, watch } from 'vue';
 import { injectStore } from '../store';
 import { College, Role, User } from '../api/resp';
 import { api } from '../api';
-import { UpdateUserRequest } from '../api/req';
+import { NewUserRequest, UpdateUserRequest } from '../api/req';
 
 const store = injectStore();
 const message = useMessage();
@@ -165,6 +166,13 @@ function deleteUser(user: User) {
 }
 
 const colleges = ref<College[]>([]);
+const collegesOptions = ref<SelectOption[]>();
+watch(() => colleges.value, () => {
+  collegesOptions.value = colleges.value.map(c => ({
+    value: c.id,
+    label: c.name
+  }));
+});
 
 onMounted(async () => {
   updateUsers(pagination.page, pagination.pageSize);
@@ -173,7 +181,7 @@ onMounted(async () => {
     colleges.value = store.state.colleges;
   });
 });
-const newUserInfo = ref<UpdateUserRequest>({
+const updatingUserInfo = ref<UpdateUserRequest>({
   username: '',
   realName: '',
   collegeId: 0,
@@ -185,7 +193,7 @@ const isQueryingUser = ref(false);
 const editedUser = ref<User>();
 const isEditingUser = ref(false);
 watch(() => editedUser, () => {
-  newUserInfo.value = {
+  updatingUserInfo.value = {
     username: editedUser.value!.username,
     realName: editedUser.value!.realName,
     collegeId: editedUser.value!.college.id,
@@ -236,6 +244,138 @@ async function updatePassword(password: string) {
     updatingPassword.value = false;
   }
 }
+
+
+const rolesOptions: SelectOption[] = [
+  {
+    value: Role.Student,
+    label: '学生',
+  },
+  {
+    value: Role.Teacher,
+    label: '教师',
+  },
+  {
+    value: Role.Admin,
+    label: '管理员',
+  }
+];
+
+const isAddingUser = ref(false);
+const isSubmittingNewUser = ref(false);
+const date = new Date();
+const addingUserInfo = ref<NewUserRequest & {
+  passwordRepeat: string;
+}>({
+  id: parseInt(date.getFullYear() + date.getTime().toString().substring(0, 9)),
+  username: '',
+  realName: '',
+  collegeId: 1,
+  password: '',
+  passwordRepeat: '',
+  role: Role.Student,
+  entranceYear: new Date().getFullYear(),
+});
+
+const formRules: FormRules = {
+  id: [
+    {
+      required: true,
+      message: '请输入正确的学号',
+      trigger: ['input', 'blur'],
+      validator(rule, value, callback) {
+        return value > 0;
+      },
+    },
+    {
+      required: true,
+      message: '学号已被使用',
+      trigger: 'blur',
+      validator(rule, value, callback) {
+        return queriedUser.value === undefined || queriedUser.value.id !== value;
+      },
+    }
+  ],
+  username: {
+    required: true,
+    pattern: /^.{5,20}$/,
+    message: '请输入正确的用户名',
+    trigger: 'input'
+  },
+  realName: {
+    required: true,
+    pattern: /^.{1,15}$/,
+    message: '请输入正确的姓名',
+    trigger: 'input'
+  },
+  password: {
+    required: true,
+    pattern: /^.{6,}$/,
+    message: '请输入密码, 至少6位',
+    trigger: 'input'
+  },
+  passwordRepeat: [
+    {
+      required: true,
+      message: '请确认密码',
+      trigger: ['input', 'blur']
+    },
+    {
+      message: '两次密码不一致',
+      trigger: 'input',
+      validator(rule, value, callback) {
+        return addingUserInfo.value.password.startsWith(value) && addingUserInfo.value.password.length >= value.length;
+      }
+    },
+    {
+      message: '两次密码不一样',
+      trigger: ['blur', 'password-input'],
+      validator(rule, value, callback) {
+        return addingUserInfo.value.password === value;
+      }
+    }
+  ],
+  collegeId: {
+    required: true,
+    message: '请选择学院',
+    trigger: 'input',
+    pattern: /^.{1,}$/,
+  }
+};
+
+const formRef = ref<FormInst | null>(null);
+async function confirmAddingUser() {
+  try {
+    await formRef.value?.validate();
+  } catch (error) {
+    return;
+  }
+
+  try {
+    isSubmittingNewUser.value = true;
+    if (!await api.newUser(addingUserInfo.value)) {
+      // 正常来说后端添加用户失败会直接给错误代码，这个分支不会发生
+      throw new Error('');
+    }
+    message.success('添加新用户成功！');
+  } catch (error) {
+    message.error('添加用户失败！' + (error as any).message);
+  } finally {
+    isSubmittingNewUser.value = false;
+  }
+}
+
+const queriedUser = ref<User>();
+async function queryUserInAddModal() {
+  try {
+    const res = await api.fetchOtherUserInfo(addingUserInfo.value.id);
+    if (res?.id === addingUserInfo.value.id) {
+      queriedUser.value = res;
+    }
+  } catch (e: any) {
+    queriedUser.value = undefined;
+  }
+}
 </script>
 
 <template>
@@ -246,13 +386,12 @@ async function updatePassword(password: string) {
 
         <n-space justify="space-between">
           <n-space>
-            <n-button ghost type="primary">
+            <n-button ghost type="primary" @click="isAddingUser = true">
               <template #icon>
                 <n-icon>
                   <Add24Filled />
                 </n-icon>
               </template>
-              <!-- TODO 增加用户 -->
               增加
             </n-button>
             <n-button ghost type="info" @click="justEdit">
@@ -272,6 +411,53 @@ async function updatePassword(password: string) {
       </n-space>
       <!-- </n-card> -->
 
+      <!-- 添加用户模态框 -->
+      <n-modal v-model:show="isAddingUser">
+        <n-card style="width: 50%" title="添加" :bordered="false" size="huge" role="dialog" aria-modal="true">
+          <n-form ref="formRef" :model="addingUserInfo" :rules="formRules" label-placement="left" label-width="auto"
+            require-mark-placement="right-hanging" :disabled="isSubmittingNewUser">
+            <n-form-item label="学号:" path="id">
+              <n-space align="center">
+                <n-input-number v-model:value="addingUserInfo.id" placeholder="请输入学号" clearable :min="1"
+                  :max="8888888888888888" @update:value="queryUserInAddModal" />
+                <n-text v-if="queriedUser !== undefined" type="error">
+                  {{ queriedUser.realName }}({{ queriedUser.id }} - {{ queriedUser.username }})
+                </n-text>
+              </n-space>
+            </n-form-item>
+            <n-form-item label="用户名:" path="username">
+              <n-input v-model:value="addingUserInfo.username" placeholder="请输入用户名" clearable />
+            </n-form-item>
+            <n-form-item label="密码:" path="password">
+              <n-input v-model:value="addingUserInfo.password" type="password" placeholder="请输入密码" />
+            </n-form-item>
+            <n-form-item label="确认密码:" path="passwordRepeat">
+              <n-input v-model:value="addingUserInfo.passwordRepeat" type="password" placeholder="请再次确认密码" />
+            </n-form-item>
+            <n-form-item label="姓名:" path="realName">
+              <n-input v-model:value="addingUserInfo.realName" placeholder="请输入姓名" clearable />
+            </n-form-item>
+            <n-form-item label="学院: " path="collegeId">
+              <n-select v-model:value="addingUserInfo.collegeId" placeholder="请选择学院" :options="collegesOptions" />
+            </n-form-item>
+            <n-form-item label="角色: " path="role">
+              <n-select v-model:value="addingUserInfo.role" placeholder="请选择角色" :options="rolesOptions" />
+            </n-form-item>
+            <div style="display: flex; justify-content: flex-end">
+              <n-button round ghost type="primary" @click="confirmAddingUser" :loading="isSubmittingNewUser">
+                <template #icon>
+                  <n-icon>
+                    <Add24Filled />
+                  </n-icon>
+                </template>
+                添加用户
+              </n-button>
+            </div>
+          </n-form>
+        </n-card>
+      </n-modal>
+
+      <!-- 编辑用户模态框 -->
       <n-modal v-model:show="isEditingUser">
         <n-card style="width: 80%" title="编辑" :bordered="false" size="huge" role="dialog" aria-modal="true">
           <n-spin :show="isQueryingUser">

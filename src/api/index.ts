@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific } from "./resp";
-import { GetSchedulesRequest, LoginCredit, Page, QueryCoursesRequest, RegisterInfo, UpdateUserRequest } from "./req";
+import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, RegisterInfo, UpdateUserRequest } from "./req";
 
 export class Api {
 
@@ -46,7 +46,7 @@ export class Api {
     return response.data.data!;
   }
 
-  public async fetchOtherUserInfo(id: string | number): Promise<User> {
+  public async fetchOtherUserInfo(id: string | number): Promise<User | undefined> {
     const response = await this._axios.get<ApiResponse<User>>(`/user/${id}`);
     return response.data.data!;
   }
@@ -68,6 +68,11 @@ export class Api {
 
   public async updateUserPassword(id: number, password: string): Promise<boolean> {
     const response = await this._axios.post<ApiResponse<boolean>>(`/user/${id}/pwd`, { password });
+    return response.data.data!;
+  }
+
+  public async newUser(newUser: NewUserRequest): Promise<boolean> {
+    const response = await this._axios.post<ApiResponse<boolean>>(`/user/new`, newUser);
     return response.data.data!;
   }
 
