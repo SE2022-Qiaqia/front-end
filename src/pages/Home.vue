@@ -17,7 +17,7 @@ const schedules = computed(() => store.state.schedules);
   <n-grid :cols="12" :x-gap="12">
     <n-grid-item :offset="1" :span="8">
       <course-schedule v-if="student.role !== Role.Admin" :schedules="schedules" />
-      <settings />
+      <settings v-else/>
     </n-grid-item>
     <n-grid-item :span="2">
       <user-brief :user="student" />

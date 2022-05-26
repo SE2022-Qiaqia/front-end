@@ -25,7 +25,7 @@
             </n-form-item>
             <n-space justify="space-between">
               <n-space>
-                <n-button round ghost text type="primary" @click="enterNewCourseCommon">
+                <n-button v-if="currentUserRole === Role.Admin" round ghost text type="primary" @click="enterNewCourseCommon">
                   <template #icon>
                     <n-icon>
                       <Add24Filled />
@@ -45,7 +45,8 @@
             </n-space>
           </n-form>
 
-          <n-collapse>
+          <n-empty v-if="!courses.length"></n-empty>
+          <n-collapse v-else>
             <n-collapse-item v-for="courseCommon in courses" key="id">
               <template #header>
                 <n-text :depth="courseCommon.courseSpecifics.length > 0 ? undefined : '3'">
