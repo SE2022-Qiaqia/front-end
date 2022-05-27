@@ -5,13 +5,13 @@ import {
   NSelect, NIcon, NDataTable, NModal, NCollapse, NCollapseItem,
   useMessage, DataTableColumns, useDialog, FormRules, SelectOption, FormInst
 } from 'naive-ui';
-import ProfileEditor from '../components/ProfileEditor.vue';
+import ProfileEditor from '@/components/user/ProfileEditor.vue';
 import { Add24Filled, Edit16Regular, Delete24Regular, ShareScreenPersonOverlayInside24Regular, ArrowClockwise28Regular } from '@vicons/fluent';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { injectStore } from '../store';
-import { College, Role, User } from '../api/resp';
-import { api } from '../api';
-import { NewUserRequest, UpdateUserRequest, QueryUserRequest } from '../api/req';
+import { injectStore } from '@/store';
+import { College, Role, User } from '@/api/resp';
+import { api } from '@/api';
+import { NewUserRequest, UpdateUserRequest, QueryUserRequest } from '@/api/req';
 
 const store = injectStore();
 const message = useMessage();

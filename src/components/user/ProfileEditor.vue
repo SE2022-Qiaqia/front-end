@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { User, College, Role } from '../api/resp';
+import { User, College, Role } from '@/api/resp';
 import {
   NGrid, NGridItem, NForm, NFormItem, NInput, NInputNumber,
   NTabs, NTabPane, FormRules, NButton, SelectOption,
   NSelect
 } from 'naive-ui';
-import UserBrief from '../components/UserBrief.vue';
-import { UpdateUserRequest } from '../api/req';
+import UserBrief from './UserBrief.vue';
+import { UpdateUserRequest } from '@/api/req';
 
 const props = defineProps<{
   user: User,

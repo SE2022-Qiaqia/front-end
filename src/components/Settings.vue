@@ -2,11 +2,11 @@
 import { computed } from '@vue/reactivity';
 import { NSpace, NCard, NSwitch, NList, NListItem, NText, NButton, NInput, NIcon, useDialog, useMessage } from 'naive-ui';
 import { onMounted, ref } from 'vue';
-import { api } from '../api';
-import { Semester } from '../api/resp';
-import { injectStore } from '../store';
+import { api } from '@/api';
+import { Semester } from '@/api/resp';
+import { injectStore } from '@/store';
 import { Add24Filled } from '@vicons/fluent';
-import { semesterToString } from '../utils';
+import { semesterToString } from '@/utils';
 
 const store = injectStore();
 const dialog = useDialog();

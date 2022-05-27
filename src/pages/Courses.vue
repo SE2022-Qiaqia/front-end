@@ -264,18 +264,18 @@ import {
   NCard, NIcon, NDivider, FormRules,
   useMessage, useDialog
 } from 'naive-ui';
-import UserBrief from '../components/UserBrief.vue';
-import CourseBrief from '../components/CourseBrief.vue';
+import UserBrief from '@/components/user/UserBrief.vue';
+import CourseBrief from '@/components/course/CourseBrief.vue';
 import { onMounted, ref, computed } from 'vue';
-import { api } from '../api';
+import { api } from '@/api';
 import { Add24Filled, Edit16Regular } from '@vicons/fluent';
 import {
   College, CourseCommonWithSpecifics, Semester, dayName, Role,
   User, CourseCommon, CourseSpecificWithoutCommon
-} from '../api/resp';
-import { NewCourseRequest, QueryCoursesRequest } from '../api/req';
-import { injectStore } from '../store';
-import { semesterToString } from '../utils';
+} from '@/api/resp';
+import { NewCourseRequest, QueryCoursesRequest } from '@/api/req';
+import { injectStore } from '@/store';
+import { semesterToString } from '@/utils';
 
 const store = injectStore();
 const message = useMessage();

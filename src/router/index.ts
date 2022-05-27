@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import { Role } from "../api/resp";
-import store from '../store';
+import { Role } from "@/api/resp";
+import store from '@/store';
 
 const loginPath = "/login";
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { NGrid, NGridItem, NSpace, NP, NText, NCard } from 'naive-ui';
-import UserBrief from '../components/UserBrief.vue';
-import CourseSchedule from '../components/CourseSchedule.vue';
-import Settings from '../components/Settings.vue';
-import { injectStore } from '../store';
-import { Role } from '../api/resp';
+import UserBrief from '@/components/user/UserBrief.vue';
+import CourseSchedule from '@/components/course/CourseSchedule.vue';
+import Settings from '@/components/Settings.vue';
+import { injectStore } from '@/store';
+import { Role } from '@/api/resp';
 import { computed } from 'vue';
-import { semesterToString } from '../utils';
+import { semesterToString } from '@/utils';
 
 const store = injectStore();
 

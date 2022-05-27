@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { NGrid, NGridItem, useMessage } from 'naive-ui';
-import ProfileEditor from '../components/ProfileEditor.vue';
-import { injectStore } from '../store';
-import { College, Role, User } from '../api/resp';
-import { UpdateUserRequest } from '../api/req';
-import { api } from '../api';
+import ProfileEditor from '@/components/user/ProfileEditor.vue';
+import { injectStore } from '@/store';
+import { College, Role, User } from '@/api/resp';
+import { UpdateUserRequest } from '@/api/req';
+import { api } from '@/api';
 import { useRouter } from 'vue-router';
 
 const store = injectStore();

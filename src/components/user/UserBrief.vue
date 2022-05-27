@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NThing, NCard } from 'naive-ui';
-import { User } from '../api/resp';
-import { Role } from '../api/resp';
+import { User } from '@/api/resp';
+import { Role } from '@/api/resp';
 
 const roles: { [key: number]: string } = {
   [Role.Student]: '学生',

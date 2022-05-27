@@ -1,9 +1,9 @@
 import { inject, InjectionKey } from "vue";
 import { createStore, Module, Store, useStore as useStoreBase } from "vuex";
-import { api } from '../api';
-import { LoginCredit } from '../api/req';
-import { College, CourseScheduleWithCourseSpecific, Semester, User } from "../api/resp";
-import { ApiSourceState, defaultApiSource, FinalState, loadApiSource, LoginState, realBaseUrl, RootState } from "./types";
+import { api } from '@/api';
+import { LoginCredit } from '@/api/req';
+import { College, CourseScheduleWithCourseSpecific, Semester, User } from "@/api/resp";
+import { ApiSourceState, FinalState, loadApiSource, LoginState, realBaseUrl, RootState } from "./types";
 
 export const key: InjectionKey<Store<FinalState>> = Symbol();
 

@@ -1,4 +1,4 @@
-import { College, CourseScheduleWithCourseSpecific, Semester, User } from "../api/resp";
+import { College, CourseScheduleWithCourseSpecific, Semester, User } from "@/api/resp";
 
 export interface RootState {
   loginToken: string;

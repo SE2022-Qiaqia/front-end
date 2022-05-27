@@ -5,8 +5,8 @@ import {
   NCard, DataTableColumn, NThing, NDataTable, DataTableColumns, NP, NH6, NText, NPopover
 } from 'naive-ui';
 import { ref } from 'vue';
-import { CourseScheduleWithCourseSpecific, dayName, DayOfWeek, Role } from '../api/resp';
-import { injectStore } from '../store';
+import { CourseScheduleWithCourseSpecific, dayName, DayOfWeek, Role } from '@/api/resp';
+import { injectStore } from '@/store';
 
 const store = injectStore();
 

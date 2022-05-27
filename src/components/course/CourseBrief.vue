@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NThing, NCard } from 'naive-ui';
-import { CourseCommon, CourseSpecificWithoutCommon } from '../api/resp';
+import { CourseCommon, CourseSpecificWithoutCommon } from '@/api/resp';
 
 const props = defineProps<{
   courseCommon: CourseCommon,
