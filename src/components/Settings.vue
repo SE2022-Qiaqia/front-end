@@ -6,6 +6,7 @@ import { api } from '../api';
 import { Semester } from '../api/resp';
 import { injectStore } from '../store';
 import { Add24Filled } from '@vicons/fluent';
+import { semesterToString } from '../utils';
 
 const store = injectStore();
 const dialog = useDialog();
@@ -109,9 +110,10 @@ onMounted(() => {
         <n-list>
           <n-list-item v-for="s in semesters" key="id">
             <n-space align="center" justify="space-between">
-              <n-text>{{ s.year }}年第{{ s.term }}学期{{ s.id === currentSemester?.id ? ' (本学期)' : '' }}</n-text>
+              <n-text>{{ semesterToString(s, s.id === currentSemester?.id) }}</n-text>
               <n-button v-if="currentSemester && s.id !== currentSemester?.id" text type="primary"
                 @click="setCurrentSemester(s)">设为本学期</n-button>
+              <n-button v-else disabled text type="primary">已是本学期</n-button>
             </n-space>
           </n-list-item>
         </n-list>

@@ -275,6 +275,7 @@ import {
 } from '../api/resp';
 import { NewCourseRequest, QueryCoursesRequest } from '../api/req';
 import { injectStore } from '../store';
+import { semesterToString } from '../utils';
 
 const store = injectStore();
 const message = useMessage();
@@ -304,7 +305,7 @@ const semesters = ref<Semester[]>([]);
 const currentSemesterId = ref(0);
 const semestersOptions = computed(() => semesters.value.map(s => ({
   value: s.id,
-  label: `${s.year}级-第${s.term}学期${s.id === currentSemesterId.value ? '(本学期)' : ''}`
+  label: semesterToString(s, s.id === currentSemesterId.value)
 })));
 
 const schedules = computed(() => store.state.schedules);
