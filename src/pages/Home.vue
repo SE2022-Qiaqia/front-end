@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NGrid, NGridItem, NSpace, NP, NText, NCard } from 'naive-ui';
 import UserBrief from '@/components/user/UserBrief.vue';
-import CourseSchedule from '@/components/course/CourseSchedule.vue';
+import CourseSchedule from '@/components/course/schedule/CourseSchedule.vue';
 import Settings from '@/components/Settings.vue';
 import { injectStore } from '@/store';
 import { Role } from '@/api/resp';
