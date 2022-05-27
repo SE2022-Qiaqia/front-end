@@ -6,165 +6,18 @@
       <n-spin :show="querying">
 
         <n-space vertical align="stretch" size="large">
-          <n-form :model="queryModel" label-placement="left" label-width="auto" require-mark-placement="right-hanging">
-            <n-form-item label="课程: ">
-              <n-input v-model:value="queryModel.name" placeholder="请输入课程名" @keydown.enter="queryCourses(true)" />
-            </n-form-item>
-            <n-form-item label="学院: ">
-              <n-select v-model:value="queryModel.collegesId" placeholder="请选择学院" :options="collegesOptions" multiple />
-            </n-form-item>
-            <n-form-item label="教师: ">
-              <n-input v-model:value="queryModel.teacherName" placeholder="请输入教师名字"
-                @keydown.enter="queryCourses(true)" />
-            </n-form-item>
-            <n-form-item label="学期: ">
-              <n-select v-model:value="queryModel.semester" placeholder="请选择学期" :options="semestersOptions" />
-            </n-form-item>
-            <n-form-item label="余量: ">
-              <n-checkbox v-model:checked="queryModel.onlyLeftQuota" label="仅看有余量" />
-            </n-form-item>
-            <n-space justify="space-between">
-              <n-space>
-                <n-button v-if="currentUserRole === Role.Admin" round ghost text type="primary"
-                  @click="enterNewCourseCommon">
-                  <template #icon>
-                    <n-icon>
-                      <Add24Filled />
-                    </n-icon>
-                  </template>
-                  新增课程
-                </n-button>
-              </n-space>
-              <n-space>
-                <n-button round type="primary" @click="queryCourses(true)">
-                  查询
-                </n-button>
-                <n-button round ghost @click="resetQuery()">
-                  重置
-                </n-button>
-              </n-space>
-            </n-space>
-          </n-form>
 
-          <n-empty v-if="!courses.length"></n-empty>
-          <n-collapse v-else>
-            <n-collapse-item v-for="courseCommon in courses" key="id">
-              <template #header>
-                <n-text :depth="courseCommon.courseSpecifics.length > 0 ? undefined : '3'">
-                  {{ courseCommon.name }} (课程号：{{ courseCommon.id }})
-                </n-text>
-              </template>
-              <template #header-extra>
-                <n-text :depth="courseCommon.courseSpecifics.length > 0 ? undefined : '3'">
-                  {{ courseCommon.college.name }} {{ courseCommon.credits.toFixed(1) }} 分
-                </n-text>
-              </template>
+          <!-- 课程查询条件 -->
+          <query-course-form v-model:query="queryModel" :colleges-options="collegesOptions"
+            :current-semester-id="currentSemesterId" :semesters-options="semestersOptions"
+            :show-add="currentUserRole === Role.Admin" @add="enterNewCourseCommon" @update:query="queryCourses(true)" />
 
-              <template v-if="currentUserRole !== Role.Admin && courseCommon.courseSpecifics.length <= 0">
-                <n-empty description="在该筛选条件下没有找到符合的课头哦~">
-                </n-empty>
-              </template>
-              <template v-else>
-                <n-table :bordered="true">
-                  <thead>
-                    <tr>
-                      <th>课头号</th>
-                      <th>课程名</th>
-                      <th>授课老师</th>
-                      <th>授课地点</th>
-                      <th>授课时间</th>
-                      <th>人数(总额/已选/余量)</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="specific in courseCommon.courseSpecifics" key="id">
-                      <td>{{ specific.id }}</td>
-                      <td>{{ courseCommon.name }}</td>
-                      <td>{{ specific.teacher.realName }}({{ specific.teacher.college.name }})</td>
-                      <td>{{ specific.location }}</td>
-                      <td>
-                        <p v-for="schedule in specific.courseSchedules">
-                          <template v-if="schedule.startWeekId">
-                            第{{ schedule.startWeekId }}~{{ schedule.endWeekId }}周，
-                          </template>
-                          {{ dayName(schedule.dayOfWeek) }}
-                          <template v-if="schedule.startHoursId">
-                            ，第{{ schedule.startHoursId }}~{{ schedule.endHoursId }}节
-                          </template>
-                        </p>
-                      </td>
-                      <td>{{ specific.quota }}/{{ specific.quotaUsed }}/{{ specific.quota - specific.quotaUsed }}</td>
-                      <td>
-                        <template v-if="currentUserRole == Role.Admin">
-                          <n-space>
-                            <n-button ghost type="primary" @click="confirmSelectCourse(specific, courseCommon)">
-                              强选
-                            </n-button>
-                            <n-button ghost type="error" @click="confirmWithdrawCourse(specific, courseCommon)">
-                              强撤
-                            </n-button>
-                            <n-divider vertical />
-                            <n-button ghost type="info">
-                              <template #icon>
-                                <n-icon>
-                                  <Edit16Regular />
-                                </n-icon>
-                                <!-- 编辑课程 -->
-                              </template>
-                            </n-button>
-                          </n-space>
-                        </template>
-                        <template v-if="currentUserRole == Role.Student">
-                          <n-space>
-                            <n-button ghost v-if="schedules.findIndex(x => x.id === specific.id) < 0" type="primary"
-                              @click="confirmSelectCourse(specific, courseCommon)">
-                              选课
-                            </n-button>
-                            <n-button ghost v-else type="error" @click="confirmWithdrawCourse(specific, courseCommon)">
-                              撤课
-                            </n-button>
-                          </n-space>
-                        </template>
-                        <template v-if="currentUserRole == Role.Teacher">
-                          <n-space>
-                            <n-button ghost v-if="schedules.findIndex(x => x.id === specific.id) < 0" type="primary">
-                              查看详情
-                              <!-- TODO -->
-                            </n-button>
-                          </n-space>
-                        </template>
-                      </td>
-                    </tr>
-                    <tr v-if="currentUserRole === Role.Admin">
-                      <td colspan="100">
-                        <n-space justify="center">
-                          <n-button type="primary" round ghost>
-                            <template #icon>
-                              <n-icon>
-                                <Add24Filled />
-                              </n-icon>
-                            </template>
-                            开设课头
-                          </n-button>
-                          <n-button type="info" round ghost @click="enterEditCourseCommon(courseCommon)">
-                            <template #icon>
-                              <n-icon>
-                                <Edit16Regular />
-                              </n-icon>
-                            </template>
-                            编辑课程信息
-                          </n-button>
-                        </n-space>
-                      </td>
-                    </tr>
-                  </tbody>
-                </n-table>
-              </template>
+          <!-- 课程查询结果 -->
+          <courses-result :courses="courses" :current-user-role="currentUserRole || 0"
+            :is-selected-validator="specific => schedules.findIndex(x => x.id === specific.id) < 0"
+            @select="selectCourse" @withdraw="withdrawCourse" @edit-common="enterEditCourseCommon" />
 
-            </n-collapse-item>
-          </n-collapse>
-
+          <!-- 下一页/加载更多... -->
           <n-space vertical align="center">
             <n-button style="width: 100%" v-if="courses.length" text @click="queryNextPageCourses">
               {{ queryModel.page < totalPage ? '加载更多' : '没有了~' }} </n-button>
@@ -179,15 +32,15 @@
           <n-spin :show="courseSelectingModel.operating">
             <n-space vertical>
               <n-space>
-                <n-form-item label="学生ID:" label-placement="left">
-                  <n-input v-model:value="courseSelectingModel.studentId" placeholder="请输入学号, 回车查询" clearable
-                    :disabled="currentUserRole !== Role.Admin" @keydown.enter="queryStudent" />
-                </n-form-item>
+                <query-user v-model:user="courseSelectingModel.student"
+                  v-model:querying="courseSelectingModel.operating" :default-user-id="courseSelectingModel.studentId"
+                  :disabled="currentUserRole !== Role.Admin" />
+
                 <n-button v-if="courseSelectingModel.operation === Operation.Select" type="primary"
-                  :disabled="courseSelectingModel.student?.role !== Role.Student" @click="selectOrWithdraw">选课
+                  :disabled="courseSelectingModel.student?.role !== Role.Student" @click="performSelectOrWithdraw">选课
                 </n-button>
                 <n-button v-else-if="courseSelectingModel.operation === Operation.Withdraw" type="error"
-                  :disabled="courseSelectingModel.student?.role !== Role.Student" @click="selectOrWithdraw">撤课
+                  :disabled="courseSelectingModel.student?.role !== Role.Student" @click="performSelectOrWithdraw">撤课
                 </n-button>
                 <n-button v-else-if="courseSelectingModel.operation === Operation.Open" type="warning"
                   :disabled="courseSelectingModel.student?.role !== Role.Teacher">开课</n-button>
@@ -258,19 +111,18 @@
 
 <script setup lang="ts">
 import {
-  NSpace, NGrid, NGridItem, NForm, NFormItem,
-  NInput, NInputNumber, NSelect, SelectOption, NCheckbox, NButton, NSpin,
-  NCollapse, NCollapseItem, NEmpty, NTable, NText, NModal,
-  NCard, NIcon, NDivider, FormRules,
-  useMessage, useDialog
+  NSpace, NGrid, NGridItem, NForm, NFormItem, NInput, NInputNumber, NSelect, SelectOption, NButton, NSpin, NText, NModal, NCard, NIcon, FormRules, useMessage, useDialog
 } from 'naive-ui';
 import UserBrief from '@/components/user/UserBrief.vue';
+import QueryUser from '@/components/user/QueryUser.vue';
 import CourseBrief from '@/components/course/CourseBrief.vue';
+import CoursesResult from '@/components/course/CoursesResults.vue';
+import QueryCourseForm from '@/components/forms/QueryCourseForm.vue';
 import { onMounted, ref, computed } from 'vue';
 import { api } from '@/api';
 import { Add24Filled, Edit16Regular } from '@vicons/fluent';
 import {
-  College, CourseCommonWithSpecifics, Semester, dayName, Role,
+  CourseCommonWithSpecifics, Semester, Role,
   User, CourseCommon, CourseSpecificWithoutCommon
 } from '@/api/resp';
 import { NewCourseRequest, QueryCoursesRequest } from '@/api/req';
@@ -295,11 +147,7 @@ const queryModel = ref<QueryCoursesRequest>({
 
 const querying = ref(false);
 
-const colleges = ref<College[]>([]);
-const collegesOptions = computed<SelectOption[]>(() => colleges.value.map(c => ({
-  value: c.id,
-  label: c.name
-})));
+const collegesOptions = ref<SelectOption[]>([]);
 
 const semesters = ref<Semester[]>([]);
 const currentSemesterId = ref(0);
@@ -329,14 +177,14 @@ const courseSelectingModel = ref<{
   courseCommon: (undefined as any)
 });
 
-function confirmSelectCourse(course: CourseSpecificWithoutCommon, common: CourseCommon) {
+function selectCourse(course: CourseSpecificWithoutCommon, common: CourseCommon) {
   courseSelectingModel.value.operation = Operation.Select;
   courseSelectingModel.value.course = course;
   courseSelectingModel.value.courseCommon = common;
   courseSelecting.value = true;
 }
 
-function confirmWithdrawCourse(course: CourseSpecificWithoutCommon, common: CourseCommon) {
+function withdrawCourse(course: CourseSpecificWithoutCommon, common: CourseCommon) {
   courseSelectingModel.value.operation = Operation.Withdraw;
   courseSelectingModel.value.course = course;
   courseSelectingModel.value.courseCommon = common;
@@ -345,7 +193,10 @@ function confirmWithdrawCourse(course: CourseSpecificWithoutCommon, common: Cour
 
 onMounted(() => {
   store.dispatch('fetchColleges').then(() => {
-    colleges.value = store.state.colleges;
+    collegesOptions.value = store.state.colleges.map(c => ({
+      value: c.id,
+      label: c.name
+    }))
   });
   store.dispatch('fetchSemesters').then(() => {
     semesters.value = store.state.semesters;
@@ -377,21 +228,11 @@ function queryNextPageCourses() {
   }
 }
 
-async function queryStudent() {
-  courseSelectingModel.value.operating = true;
-  try {
-    courseSelectingModel.value.student = await api.fetchOtherUserInfo(courseSelectingModel.value.studentId!);
-  } catch (e: any) {
-    courseSelectingModel.value.student = undefined;
-  }
-  courseSelectingModel.value.operating = false;
-}
-
-async function selectOrWithdraw() {
+async function performSelectOrWithdraw() {
   courseSelectingModel.value.operating = true;
   if (courseSelectingModel.value.operation === Operation.Select) {
     try {
-      await api.selectCourse(parseInt(courseSelectingModel.value.studentId!), courseSelectingModel.value.course?.id!);
+      await api.selectCourse(courseSelectingModel.value.student!.id, courseSelectingModel.value.course?.id!);
       message.success('选课成功！');
       courseSelectingModel.value.operation = Operation.Withdraw;
       store.dispatch('fetchSchedules');
@@ -400,7 +241,7 @@ async function selectOrWithdraw() {
     }
   } else if (courseSelectingModel.value.operation === Operation.Withdraw) {
     try {
-      await api.unselectCourse(parseInt(courseSelectingModel.value.studentId!), courseSelectingModel.value.course?.id!)
+      await api.unselectCourse(courseSelectingModel.value.student!.id, courseSelectingModel.value.course?.id!)
       message.warning('撤课成功！');
       courseSelectingModel.value.operation = Operation.Select;
       store.dispatch('fetchSchedules');
@@ -410,19 +251,6 @@ async function selectOrWithdraw() {
   }
   courseSelectingModel.value.operating = false;
 }
-
-function resetQuery() {
-  queryModel.value = {
-    name: '',
-    collegesId: [],
-    teacherName: '',
-    onlyLeftQuota: true,
-    semester: semesters.value[0].id,
-    page: 1,
-    size: 10
-  };
-}
-
 
 const isEditingCourseCommonModel = ref(false);
 const courseCommonOperation = ref(Operation.EditCommon);
@@ -468,7 +296,7 @@ function enterNewCourseCommon() {
   editingCourseCommon.value = undefined;
   courseCommonModel.value = {
     name: '',
-    collegeId: colleges.value?.length ? 1 : 0,
+    collegeId: collegesOptions.value.length ? (collegesOptions.value[0].value as number) : 0,
     credits: 3,
     hours: 40,
   };
