@@ -111,18 +111,20 @@
       <n-modal v-model:show="isEditingCourseSpecificModel">
         <n-card style="width: auto" :title="courseSpecificOperation === Operation.Open ? '开设课头' : '编辑课头'"
           :bordered="false" size="huge" role="dialog" aria-modal="true">
-          <n-space>
-            <n-card title="预览">
-              <course-brief :course-common="editingCourseSpecific!.common" :course-specific="newCourseSpecific!" />
-            </n-card>
-            <!-- 按照页面逻辑，v-if 实际上是不需要的，但是由于courseSpecificModel没赋初值下面类型提示便可能是undefined -->
-            <template v-if="courseSpecificModel">
-              <course-specific-form v-model:course-specific="courseSpecificModel"
-                v-model:teacher="courseSpecificTeacher" :semesters-options="semestersOptions"
-                :for-open="courseSpecificOperation === Operation.Open" :loading="courseSpecificModelOperating"
-                @update:course-specific="performCourseSpecificOperation" />
-            </template>
-          </n-space>
+          <n-spin :show="courseSpecificOperating">
+            <n-space>
+              <n-card title="预览">
+                <course-brief :course-common="editingCourseSpecific!.common" :course-specific="newCourseSpecific!" />
+              </n-card>
+              <!-- 按照页面逻辑，v-if 实际上是不需要的，但是由于courseSpecificModel没赋初值下面类型提示便可能是undefined -->
+              <template v-if="courseSpecificModel">
+                <course-specific-form v-model:course-specific="courseSpecificModel"
+                  v-model:teacher="courseSpecificTeacher" :semesters-options="semestersOptions"
+                  :for-open="courseSpecificOperation === Operation.Open" :loading="courseSpecificModelOperating"
+                  @update:course-specific="performCourseSpecificOperation" />
+              </template>
+            </n-space>
+          </n-spin>
         </n-card>
       </n-modal>
     </n-grid-item>
