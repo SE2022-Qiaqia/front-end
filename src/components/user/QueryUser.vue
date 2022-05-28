@@ -6,9 +6,10 @@ import { ref, watch } from 'vue';
 
 const props = defineProps<{
   defaultUserId?: string,
-  disabled: boolean,
+  disabled?: boolean,
   user?: User,
   querying: boolean,
+  label?: string
 }>();
 
 const id = ref(props.defaultUserId);
@@ -33,7 +34,12 @@ async function queryUser() {
 </script>
 
 <template>
-  <n-form-item label="学生ID:" label-placement="left">
-    <n-input v-model:value="id" placeholder="请输入学号, 回车查询" clearable :disabled="disabled && !!id" @keydown.enter="queryUser" />
+  <n-form-item :label="label || '学生ID:'" label-placement="left">
+    <n-input v-model:value="id" placeholder="请输入学号, 回车查询" clearable :disabled="disabled && !!id"
+      @keydown.enter="queryUser">
+      <template #suffix>
+        <slot name="suffix" />
+      </template>
+    </n-input>
   </n-form-item>
 </template>

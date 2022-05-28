@@ -19,6 +19,8 @@ const emits = defineEmits<{
   (e: 'select', courseSpecific: CourseSpecificWithoutCommon, courseCommon: CourseCommonWithSpecifics): void
   (e: 'withdraw', courseSpecific: CourseSpecificWithoutCommon, courseCommon: CourseCommonWithSpecifics): void
   (e: 'editCommon', courseCommon: CourseCommonWithSpecifics): void
+  (e: 'open', courseCommon: CourseCommonWithSpecifics): void
+  (e: 'editSpecific', courseSpecific: CourseSpecificWithoutCommon, courseCommon: CourseCommonWithSpecifics): void
 }>();
 
 const confirmSelectCourse
@@ -29,6 +31,12 @@ const confirmWithdrawCourse
 
 const enterEditCourseCommon
   = (courseCommon: CourseCommonWithSpecifics) => emits('editCommon', courseCommon);
+
+const enterOpenCourse
+  = (courseCommon: CourseCommonWithSpecifics) => emits('open', courseCommon);
+
+const enterEditCourseSpecific
+  = (specific: CourseSpecificWithoutCommon, courseCommon: CourseCommonWithSpecifics) => emits('editSpecific', specific, courseCommon);
 </script>
 
 <template>
@@ -91,7 +99,7 @@ const enterEditCourseCommon
                       强撤
                     </n-button>
                     <n-divider vertical />
-                    <n-button ghost type="info">
+                    <n-button ghost type="info" @click="enterEditCourseSpecific(specific, courseCommon)">
                       <template #icon>
                         <n-icon>
                           <Edit16Regular />
@@ -125,7 +133,7 @@ const enterEditCourseCommon
             <tr v-if="currentUserRole === Role.Admin">
               <td colspan="100">
                 <n-space justify="center">
-                  <n-button type="primary" round ghost>
+                  <n-button type="primary" round ghost @click="enterOpenCourse(courseCommon)">
                     <template #icon>
                       <n-icon>
                         <Add24Filled />

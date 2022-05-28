@@ -15,7 +15,8 @@
           <!-- 课程查询结果 -->
           <courses-result :courses="courses" :current-user-role="currentUserRole || 0"
             :is-selected-validator="specific => schedules.findIndex(x => x.id === specific.id) < 0"
-            @select="selectCourse" @withdraw="withdrawCourse" @edit-common="enterEditCourseCommon" />
+            @select="selectCourse" @withdraw="withdrawCourse" @edit-common="enterEditCourseCommon"
+            @open="enterOpenCourse" @edit-specific="enterEditCourseSpecific" />
 
           <!-- 下一页/加载更多... -->
           <n-space vertical align="center">
@@ -105,6 +106,25 @@
 
         </n-card>
       </n-modal>
+
+      <!-- 对话框 —— 开设/编辑课头 -->
+      <n-modal v-model:show="isEditingCourseSpecificModel">
+        <n-card style="width: auto" :title="courseSpecificOperation === Operation.Open ? '开设课头' : '编辑课头'"
+          :bordered="false" size="huge" role="dialog" aria-modal="true">
+          <n-space>
+            <n-card title="预览">
+              <course-brief :course-common="editingCourseSpecific!.common" :course-specific="newCourseSpecific!" />
+            </n-card>
+            <!-- 按照页面逻辑，v-if 实际上是不需要的，但是由于courseSpecificModel没赋初值下面类型提示便可能是undefined -->
+            <template v-if="courseSpecificModel">
+              <course-specific-form v-model:course-specific="courseSpecificModel"
+                v-model:teacher="courseSpecificTeacher" :semesters-options="semestersOptions"
+                :for-open="courseSpecificOperation === Operation.Open" :loading="courseSpecificModelOperating"
+                @update:course-specific="performCourseSpecificOperation" />
+            </template>
+          </n-space>
+        </n-card>
+      </n-modal>
     </n-grid-item>
   </n-grid>
 </template>
@@ -118,6 +138,7 @@ import QueryUser from '@/components/user/QueryUser.vue';
 import CourseBrief from '@/components/course/CourseBrief.vue';
 import CoursesResult from '@/components/course/CoursesResults.vue';
 import QueryCourseForm from '@/components/forms/QueryCourseForm.vue';
+import CourseSpecificForm from '@/components/forms/CourseSpecificForm.vue';
 import { onMounted, ref, computed } from 'vue';
 import { api } from '@/api';
 import { Add24Filled, Edit16Regular } from '@vicons/fluent';
@@ -128,6 +149,7 @@ import {
 import { NewCourseRequest, QueryCoursesRequest } from '@/api/req';
 import { injectStore } from '@/store';
 import { semesterToString } from '@/utils';
+import { CourseSpecificModel } from '@/components/forms';
 
 const store = injectStore();
 const message = useMessage();
@@ -304,7 +326,6 @@ function enterNewCourseCommon() {
 async function confirmCourseCommonOperation() {
   courseCommonModelOperating.value = true;
   if (courseCommonOperation.value === Operation.New) {
-    console.log(editingCourseCommon.value)
     if (!editingCourseCommon.value || (await new Promise<boolean>((resolve, reject) => {
       dialog.warning({
         title: '警告',
@@ -331,5 +352,105 @@ async function confirmCourseCommonOperation() {
     }
   }
   courseCommonModelOperating.value = false;
+}
+
+const courseSpecificOperating = ref(false);
+const isEditingCourseSpecificModel = ref(false);
+const courseSpecificOperation = ref(Operation.EditSpecific);
+const courseSpecificModelOperating = ref(false);
+const editingCourseSpecific = ref<{
+  common: CourseCommon,
+  specific?: CourseSpecificWithoutCommon,
+}>();
+const courseSpecificTeacher = ref<User>(store.state.user!); // 先默认分个人
+const newCourseSpecific = computed<CourseSpecificWithoutCommon>(() => ({
+
+  // 杂项（不可编辑）
+  id: editingCourseSpecific.value?.specific?.id || 0,
+  createdAt: editingCourseSpecific.value?.specific?.createdAt || '',
+  updatedAt: editingCourseSpecific.value?.specific?.updatedAt || '',
+
+  quotaUsed: editingCourseSpecific.value?.specific?.quotaUsed || 0,
+
+  // 可编辑简单数据
+  teacher: courseSpecificTeacher.value,
+  location: courseSpecificModel.value!.location,
+  quota: courseSpecificModel.value!.quota || 0,
+
+  // 可编辑复合型数据
+  semester: semesters.value.filter(s => s.id === courseSpecificModel.value?.semesterId)[0],
+  courseSchedules: courseSpecificModel.value!.courseSchedules.map(x => ({
+    ...x,
+    id: 0,
+    createdAt: '',
+    updatedAt: '',
+  })),
+
+}));
+const courseSpecificModel = ref<CourseSpecificModel>();
+
+function enterOpenCourse(courseCommon: CourseCommon) {
+  courseSpecificOperation.value = Operation.Open;
+  isEditingCourseSpecificModel.value = true;
+  editingCourseSpecific.value = {
+    common: courseCommon,
+  };
+  courseSpecificModel.value = {
+    courseCommonId: courseCommon.id,
+    semesterId: currentSemesterId.value,
+    teacherId: store.state.user!.id,
+    location: '',
+    quota: 20,
+    courseSchedules: []
+  };
+}
+
+function enterEditCourseSpecific(course: CourseSpecificWithoutCommon, courseCommon: CourseCommon) {
+  courseSpecificOperation.value = Operation.EditSpecific;
+  isEditingCourseSpecificModel.value = true;
+  editingCourseSpecific.value = {
+    common: courseCommon,
+    specific: course,
+  };
+  courseSpecificTeacher.value = course.teacher;
+  courseSpecificModel.value = {
+    courseCommonId: courseCommon.id,
+    semesterId: currentSemesterId.value,
+    teacherId: course.teacher.id,
+    location: course.location,
+    quota: course.quota,
+    courseSchedules: course.courseSchedules.map(c => ({ ...c }))
+  };
+}
+
+async function performCourseSpecificOperation() {
+  courseSpecificOperating.value = true;
+  if (courseSpecificOperation.value === Operation.Open) {
+    if (!editingCourseSpecific.value?.specific || (await new Promise<boolean>((resolve, reject) => {
+      dialog.warning({
+        title: '警告',
+        content: '您可能已经开设过该课头了，还要继续操作吗？',
+        positiveText: '确认再次开设',
+        negativeText: '取消',
+        onPositiveClick: () => resolve(true),
+        onNegativeClick: () => resolve(false),
+      });
+    }))) {
+      try {
+        editingCourseSpecific.value!.specific = await api.openCourse(courseSpecificModel.value!);
+        message.success('开设课头成功！(查询列表可能需要刷新哦~)');
+      } catch (error) {
+        message.error('开设失败: ' + (error as Error).message);
+      }
+    }
+  } else if (courseSpecificOperation.value == Operation.EditSpecific) {
+    try {
+      editingCourseSpecific.value!.specific = await api.updateCourseSpecific(editingCourseSpecific.value!.specific!.id!, courseSpecificModel.value!);
+      message.success('更新课头成功！(查询列表可能需要刷新哦~)');
+    } catch (error) {
+      message.error('更新课头失败: ' + (error as Error).message);
+    }
+  }
+  courseSpecificOperating.value = false;
 }
 </script>

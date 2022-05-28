@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { ApiResponse, ErrCode, User, College, Semester, CourseCommonWithSpecifics, ApiPageResponse, PageData, CourseScheduleWithCourseSpecific, CourseSpecific, CourseCommon } from "./resp";
-import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, QueryUserRequest, RegisterInfo, UpdateUserRequest, UpdateCourseCommonRequest, NewCourseRequest } from "./req";
+import { GetSchedulesRequest, LoginCredit, NewUserRequest, Page, QueryCoursesRequest, QueryUserRequest, RegisterInfo, UpdateUserRequest, UpdateCourseCommonRequest, NewCourseRequest, OpenCourseRequest, UpdateCourseSpecificRequest } from "./req";
 import { loadApiSource, realBaseUrl } from '../store/types';
 
 export class Api {
@@ -160,6 +160,15 @@ export class Api {
     return response.data.data!;
   }
 
+  public async openCourse(data: OpenCourseRequest): Promise<CourseSpecific> {
+    const response = await this._axios.post<ApiResponse<CourseSpecific>>(`/course/open`, data);
+    return response.data.data!;
+  }
+
+  public async updateCourseSpecific(id: number, data: UpdateCourseSpecificRequest): Promise<CourseSpecific> {
+    const response = await this._axios.put<ApiResponse<CourseSpecific>>(`/course/spec/${id}`, data);
+    return response.data.data!;
+  }
 
 }
 

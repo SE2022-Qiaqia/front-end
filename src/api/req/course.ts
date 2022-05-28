@@ -1,6 +1,6 @@
 import { Page } from ".";
 
-export interface QueryCoursesRequest extends Page{
+export interface QueryCoursesRequest extends Page {
   name: string;
   semester: number;
   teacherName: string;
@@ -29,7 +29,7 @@ export interface OpenCourseRequest {
   teacherId: number;
   location: string;
   quota: number;
-  courseSchedules: (CourseSchedule | undefined)[];
+  courseSchedules: CourseSchedule[];
 }
 
 // export interface UpdateCourseCommonRequest {
@@ -44,7 +44,7 @@ export interface UpdateCourseSpecificRequest {
   teacherId: number;
   location: string;
   quota: number;
-  courseSchedules: (CourseSchedule | undefined)[];
+  courseSchedules: CourseSchedule[];
 }
 
 export interface SelectCourseRequest {
