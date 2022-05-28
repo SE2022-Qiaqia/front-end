@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity';
-import { NSpace, NCard, NSwitch, NList, NListItem, NText, NButton, NInput, NIcon, useDialog, useMessage } from 'naive-ui';
-import { onMounted, ref } from 'vue';
+import {
+  NSpace, NCard, NSwitch, NList, NListItem, NText, NButton, NInput, NIcon,
+  NInputNumber, NInputGroup, NSelect, SelectOption, useDialog, useMessage
+} from 'naive-ui';
+import { onMounted, ref, watch, computed } from 'vue';
 import { api } from '@/api';
 import { Semester } from '@/api/resp';
+import { Semester as NewSemester } from '@/api/req';
 import { injectStore } from '@/store';
 import { Add24Filled } from '@vicons/fluent';
 import { semesterToString } from '@/utils';
@@ -21,6 +24,23 @@ const semesters = computed(() => store.state.semesters);
 const colleges = computed(() => store.state.colleges);
 const newCollegeName = ref('');
 const isAddingCollege = ref(false);
+
+const newSemesterModel = ref<NewSemester>({
+  year: new Date().getFullYear(),
+  term: Math.ceil(new Date().getMonth() / 6),
+});
+watch(() => store.state.currentSemester, () => {
+  if (!!store.state.semesters?.length) return;
+  const latest = store.state.semesters[0];
+  newSemesterModel.value.year = latest.year + (latest.term === 3 ? 1 : 0);
+  newSemesterModel.value.term = latest.term >= 3 ? 1 : latest.term + 1;
+})
+const semesterTermsOptions: SelectOption[] = [1, 2, 3].map(term => ({
+  label: `第${term}学期`,
+  value: term,
+}));
+console.log(semesterTermsOptions);
+const isAddingSemester = ref(false);
 
 async function enableRegister(value: boolean) {
   canRegisterLoading.value = true;
@@ -45,6 +65,20 @@ async function newCollege() {
       message.error('添加学院失败！' + (e as any).message);
     })
     .finally(() => isAddingCollege.value = false);
+}
+
+async function newSemester() {
+  isAddingSemester.value = true;
+  api.newSemester(newSemesterModel.value)
+    .then(() => {
+      newCollegeName.value = '';
+      message.success('添加学期成功！');
+      store.dispatch('fetchSemesters');
+    })
+    .catch(e => {
+      message.error('添加学期失败！' + (e as any).message);
+    })
+    .finally(() => isAddingSemester.value = false);
 }
 
 function setCurrentSemester(semester: Semester) {
@@ -114,6 +148,23 @@ onMounted(() => {
               <n-button v-if="currentSemester && s.id !== currentSemester?.id" text type="primary"
                 @click="setCurrentSemester(s)">设为本学期</n-button>
               <n-button v-else disabled text type="primary">已是本学期</n-button>
+            </n-space>
+          </n-list-item>
+          <n-list-item>
+            <n-space align="center" justify="space-between">
+              <n-input-group>
+                <n-input-number v-model:value="newSemesterModel.year" :show-button="false">
+                  <template #suffix>年</template>
+                </n-input-number>
+                <n-select v-model:value="newSemesterModel.term" :options="semesterTermsOptions" />
+              </n-input-group>
+              <n-button :loading="isAddingSemester" @click="newSemester">
+                <template #icon>
+                  <n-icon>
+                    <Add24Filled />
+                  </n-icon>
+                </template>
+              </n-button>
             </n-space>
           </n-list-item>
         </n-list>
