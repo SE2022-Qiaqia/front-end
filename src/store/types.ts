@@ -1,4 +1,5 @@
 import { College, CourseScheduleWithCourseSpecific, Semester, User } from "@/api/resp";
+import { defaultApiSource } from "@/api";
 
 export interface RootState {
   loginToken: string;
@@ -22,14 +23,6 @@ export interface ApiSourceState {
   sameSource: boolean;
 }
 
-export const defaultApiSource: ApiSourceState = {
-  protocol: 'http',
-  host: 'localhost',
-  port: 8080,
-  base: 'api/v1',
-  sameSource: false
-};
-
 export function realBaseUrl(apiSource: ApiSourceState) {
   if (apiSource.sameSource) return document.location.origin + '/' + apiSource.base;
   return `${apiSource.protocol}://${apiSource.host}:${apiSource.port}/${apiSource.base}`;
@@ -37,7 +30,7 @@ export function realBaseUrl(apiSource: ApiSourceState) {
 
 export function loadApiSource() {
   let s = sessionStorage.getItem('apiSource');
-  if (!s) localStorage.getItem('apiSource')
+  if (!s) s = localStorage.getItem('apiSource');
   if (s) return JSON.parse(s);
   return defaultApiSource;
 }

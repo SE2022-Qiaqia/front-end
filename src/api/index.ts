@@ -173,3 +173,4 @@ export class Api {
 }
 
 export const api = new Api(realBaseUrl(loadApiSource()));
+export { defaultApiSource } from './_source';

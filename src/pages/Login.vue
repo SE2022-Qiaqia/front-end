@@ -6,10 +6,9 @@ import {
 } from 'naive-ui';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { api } from '@/api';
+import { api, defaultApiSource } from '@/api';
 import { College, User } from '@/api/resp';
 import { injectStore } from '@/store';
-import { defaultApiSource } from '@/store/types';
 
 const store = injectStore();
 const message = useMessage();
