@@ -111,7 +111,7 @@ const enterEditCourseSpecific
                 </template>
                 <template v-if="currentUserRole == Role.Student">
                   <n-space>
-                    <n-button ghost v-if="isSelectedValidator(specific)" type="primary"
+                    <n-button ghost v-if="!isSelectedValidator(specific)" type="primary"
                       @click="confirmSelectCourse(specific, courseCommon)">
                       选课
                     </n-button>
@@ -122,7 +122,7 @@ const enterEditCourseSpecific
                 </template>
                 <template v-if="currentUserRole == Role.Teacher">
                   <n-space>
-                    <n-button ghost v-if="isSelectedValidator(specific)" type="primary">
+                    <n-button ghost :disabled="!isSelectedValidator(specific)" type="primary">
                       查看详情
                       <!-- TODO -->
                     </n-button>

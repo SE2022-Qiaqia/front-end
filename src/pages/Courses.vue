@@ -14,7 +14,7 @@
 
           <!-- 课程查询结果 -->
           <courses-result :courses="courses" :current-user-role="currentUserRole || 0"
-            :is-selected-validator="specific => schedules.findIndex(x => x.id === specific.id) < 0"
+            :is-selected-validator="specific => schedules.findIndex(x => x.id === specific.id) >= 0"
             @select="selectCourse" @withdraw="withdrawCourse" @edit-common="enterEditCourseCommon"
             @open="enterOpenCourse" @edit-specific="enterEditCourseSpecific" />
 
